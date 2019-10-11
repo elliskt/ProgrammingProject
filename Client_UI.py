@@ -68,7 +68,7 @@ def client_login(un, pw):
         map_window()
 
 
-def client_register(un, pw):
+def registerClient(un, pw):
     # the user may sent space will hence error here
     regis_package = '%s %s' % (un, pw)
     clientSocket.send(b'register')
@@ -126,7 +126,7 @@ def open_register():
     password_box["justify"] = "center"
     password_box.focus()
 
-    register_button = Button(text="Sign Up", command=lambda: client_register(mobile_box.get(), password_box.get()))
+    register_button = Button(text="Sign Up", command=lambda: registerClient(mobile_box.get(), password_box.get()))
     register_button.place(x=150, y=400, width=200, height=25)
     register_button.configure(font=3)
 
