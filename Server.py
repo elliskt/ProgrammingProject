@@ -3,7 +3,7 @@ from threading import Thread
 from ServerFunc import *
 
 
-def clientHandler(client_socket, client_addr):
+def server(client_socket, client_addr):
     client = bikeSharingServer(client_socket, client_addr)
     print("[Server] Client connected!")
     client.receiveCommand()
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     try:
         while True:
             clientSocket, clientAddr = serverSocket.accept()
-            client = Thread(target=clientHandler, args=(clientSocket, clientAddr))
+            client = Thread(target=server, args=(clientSocket, clientAddr))
             client.start()
     finally:
         print("here is finally!")

@@ -48,7 +48,7 @@ def map_window():
     locationC_button.configure(background="#98FB98")
 
 #
-def client_login(un, pw):
+def clientLogin(un, pw):
     login_package = '%s %s' % (un, pw)               # the user may sent space will hence error here
     clientSocket.send(b'verify_login')
     clientSocket.recv(BUFSIZE)                      # receive the 'verify'
@@ -60,11 +60,11 @@ def client_login(un, pw):
         register_label = Label(text="The user not exists!")
         register_label.place(x=150, y=220)
         register_label.configure(fg="red")
-    elif login_state == 'USER_UNVERIFIED':
+    elif login_state == "USER_NOT_VERIFIED":
         register_label = Label(text="The user and password don't match!")
         register_label.place(x=150, y=220)
         register_label.configure(fg="red")
-    elif login_state == 'USER_VERIFIED':
+    elif login_state == "USER_VERIFIED":
         map_window()
 
 
@@ -78,11 +78,11 @@ def registerClient(un, pw):
     regis_state = clientSocket.recv(BUFSIZE)
     regis_state = regis_state.decode('utf-8')
     # --------------------------------------
-    if regis_state == 'USER_ALREADY_EXIST':
+    if regis_state == "USER_REGISTERD":
         register_label = Label(text="The user already exists!")
         register_label.place(x=150, y=220)
         register_label.configure(fg="red")
-    elif regis_state == 'USER_REGISTERED':
+    elif regis_state == "USER_REGISTERD":
         map_window()
 
 
@@ -157,7 +157,7 @@ def login():
     password_box["justify"] = "center"
     password_box.focus()
 
-    login_button = Button(text="Log In", command=lambda: client_login(mobile_box.get(), password_box.get()))
+    login_button = Button(text="Log In", command=lambda: clientLogin(mobile_box.get(), password_box.get()))
     login_button.place(x=150, y=400, width=200, height=25)
     login_button.configure(font=6)
     login_button.configure(background="#66A1DC")

@@ -66,12 +66,25 @@ class database(object):
 			self.cursor.execute(""" INSERT INTO Users(mobile, pswd, name, type)
 				VALUES(?, ?, ?, ?);""", (_mobile, _pswd, _name, _type))
 			self.db.commit()
-			return 1; # Operation successful
 		except sql.IntegrityError as e:
-			if e.args[0] == 'UNIQUE constraint failed':
-				return -1; # User exists
+			if e.args[0] == 'UNIQUE constraint failed: Users.mobile':
+				return "USER_EXISTS" # User exists
 			else:
 				print("ERROR: ", e.args[0])
+		return "USER_REGISTERD" # Operation successful
+
+	def verifyUser(self, mobile, pswd):  # return
+		self.cursor.execute("""SELECT COUNT(1) FROM Users WHERE mobile = ? AND pswd = ?""", (mobile, pswd))
+		count = self.cursor.fetchall()[0][0] 
+		if count == 1:
+		    return "USER_VERIFIED"
+		else:
+			self.cursor.execute("""SELECT COUNT(1) FROM Users WHERE mobile = ?""", (mobile,))
+			count = self.cursor.fetchall()[0][0]
+			if count == 1:
+			    return "USER_NOT_VERIFIED"
+			else:
+				return "USER_NOT_EXIST"
 
 	def deleteUser(self, _mobile):
 		self.cursor.execute("DELETE FROM Users WHERE mobile='{}';".format(_mobile))
