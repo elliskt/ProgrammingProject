@@ -1,41 +1,41 @@
-from ServerDB import *
+from db import *
 
 
-class Server_Client(DBFun):
+class bikeSharingServer(database):
     def __init__(self, client_socket, client_addr):
         super().__init__()
         self.BUFSIZE = 1024
         self.clientSocket = client_socket
         self.clientAddr = client_addr
-        self.client_login = None
+        # self.client_login = None
 
-    def verify_command(self):
+    def authenticateUser(self):
         self.clientSocket.sendall(b'verify')
         self.client_login = self.clientSocket.recv(self.BUFSIZE)
         self.client_login = self.client_login.decode('utf-8')
-        client_username, client_pw = self.client_login.split(' ')
-        print('[Client] username,', client_username)
-        print('[Client] password,', client_pw)
+        mobile, pswd = self.client_login.split(' ')
+        print('[Client] username,', mobile)
+        print('[Client] password,', pswd)
         # ----- verify the username & password ---
-        verify_status = self.verify_un_pw(un=client_username, pw=client_pw)
+        verify_status = self.verifyUser(mobile, pswd)
         # -----------------------------------------
         if verify_status == 'USER_VERIFIED':
-            print("[Client] %s login successed." % client_username)
+            print("[Client] %s login successed." % mobile)
         else:
-            print("[Client] %s error: %s" % (client_username, verify_status))
+            print("[Client] %s error: %s" % (mobile, verify_status))
         # return the result of this login attempt ("USER_NOT_EXIST, ", "USER_UNVERIFIED", "USER_VERIFIED")
         self.clientSocket.sendall(bytes(verify_status.encode('utf-8')))
         # ------ go back to receiveCommand
         self.receiveCommand()
 
-    def register_command(self):
+    def registerUser(self):
         self.clientSocket.sendall(b'register')
         self.client_login = self.clientSocket.recv(self.BUFSIZE)
         self.client_login = self.client_login.decode('utf-8')
-        client_username, client_pw = self.client_login.split(' ')
-        print('[Client] username,', client_username)
-        print('[Client] password,', client_pw)
-        reg_status = self.client_register(un=client_username, pw=client_pw)
+        mobile, pswd = self.client_login.split(' ')
+        print('[Client] Username: ', mobile)
+        print('[Client] Password: ', pswd)
+        reg_status = self.addUser(str(mobile), pswd, "Mohammad Alharbi", 1)
         self.clientSocket.sendall(bytes(reg_status.encode('utf-8')))        # result of register attempt
         # ------ go back to receiveCommand
         self.receiveCommand()
@@ -45,7 +45,7 @@ class Server_Client(DBFun):
         client_command = client_command.decode('utf-8')
         print("[Server] received command: ", client_command)
         if client_command == 'verify_login':
-            self.verify_command()
+            self.authenticateUser()
         elif client_command == 'register':
-            self.register_command()
+            self.registerUser()
 
