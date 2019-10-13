@@ -55,4 +55,7 @@ class bikeSharingServer(database):
             self.authenticateUser()
         elif client_command == 'register':
             self.registerUser()
+        elif client_command == "GET_LOCATIONS":
+            locations = self.getDB("Locations")
+            self.clientSocket.sendall(bytes(str(locations).encode('utf-8')))
 

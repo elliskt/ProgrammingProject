@@ -1,4 +1,5 @@
 import sqlite3 as sql
+import numpy as np
 
 class database(object):
 	def __init__(self):
@@ -33,32 +34,18 @@ class database(object):
 		self.db.commit()
 
 		self.cursor.execute(""" CREATE TABLE IF NOT EXISTS Log(
-			mobile INTEGER,
-			bike_id INTEGER,
-			cost INTEGER,
-			condition TEXT,
-			start_time TIME,
-			end_time TIME,
+			mobile		INTEGER,
+			bike_id		INTEGER,
+			cost		INTEGER,
+			condition	TEXT,
+			start_time	TIME,
+			end_time	TIME,
 			FOREIGN KEY (bike_id) 
 				REFERENCES Bikes(id),
 			FOREIGN KEY (mobile) 
 				REFERENCES Users(mobile)
 		);""")
-
-	#=============== INITIAL DATA ================
-	def addUsers():
-		users = ['Mohammad', 'Razvan', 'Yihao', 'Ellis', 'Hafsah']
-		for i in range(len(users)):
-			addUser(i, np.random.randint(0, 100), users[i], 1)
-		
-	def addLocations():
-		locations = ['UofG', 'Strathclyde', 'Caledonian']
-		for i in range(len(locations)):
-			addLocation(i, locations[i])
-
-	def addBikes():
-		for i in range(11):
-			addBike(i, np.random.randint(0, 4))
+		self.db.commit()
 
 	#==================== USERS ====================
 	def addUser(self, _mobile, _pswd, _name, _type):
@@ -100,7 +87,7 @@ class database(object):
 		except sql.IntegrityError as e:
 			if e.args[0] == 'FOREIGN KEY constraint failed':
 				print("ERROR: Location does not exist")
-			elif e.args[0] == 'UNIQUE constraint failed':
+			elif e.args[0] == 'UNIQUE constraint failed: Bikes.id':
 				print("ERROR: Bike ID exists")
 			else:
 				print("ERROR: ", e.args[0])
@@ -124,7 +111,8 @@ class database(object):
 				(_id, _name))
 			self.db.commit()
 		except sql.IntegrityError as e:
-			print("ERROR: ", e.args[0])
+			if e.args[0] == "UNIQUE constraint failed: Locations.id":
+				print("ERROR: Location ID exists")
 
 	def deleteLocation(self, _id):
 		self.cursor.execute("DELETE FROM Locations WHERE id=?;", (_id))
@@ -132,19 +120,41 @@ class database(object):
 
 
 	#==================== LOG ====================
+	#================== GENERAL ==================
 	def printDB(self, table):
 		print(table, "table: ")
 		self.cursor.execute(""" SELECT * FROM {}""".format(table))
 		for i in self.cursor.fetchall():
 			print(i)
 
+	def getDB(self, table):
+		self.cursor.execute(""" SELECT * FROM {}""".format(table))
+		return self.cursor.fetchall() #returns a list of DB records
+
 
 #=================== TESTING ===================
-# addUsers()
-# addLocations()
-# addBikes()
-# printDB("Users")
-# printDB("Locations")
-# printDB("Bikes")
+# Uncomment and run file to repopulate DB
+	#=============== INITIAL DATA ================
+	# def addUsers(self):
+	# 	self.users = ['Mohammad', 'Razvan', 'Yihao', 'Ellis', 'Hafsah']
+	# 	for i in range(len(self.users)):
+	# 		self.addUser(i, i, self.users[i], 1)
+		
+	# def addLocations(self):
+	# 	self.locations = ['UofG', 'Strathclyde', 'Caledonian']
+	# 	for i in range(len(self.locations)):
+	# 		self.addLocation(i, self.locations[i])
+
+	# def addBikes(self):
+	# 	for i in range(10):
+	# 		self.addBike(i, np.random.randint(0, 3))
+# if __name__ == '__main__':
+# 	db = database()
+# 	db.addUsers()
+# 	db.addLocations()
+# 	db.addBikes()
+# 	db.printDB("Users")
+# 	db.printDB("Locations")
+# 	db.printDB("Bikes")
 # db.close()
 

@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter.font import Font
 from time import strftime
 import math
+import ast
 client_connect_server()
 
 
@@ -34,20 +35,38 @@ def map_page():
 
     start_y = 250
 
-    locationA_button = Button(text="Location A", command=clear_window)
-    locationA_button.place(x=150, y=start_y + 50, width=200, height=25)
-    locationA_button.configure(font=14)
-    locationA_button.configure(background="#98FB98")
+    width = 200
+    height = 25
+    x = 150
 
-    locationB_button = Button(text="Location B", command=clear_window)
-    locationB_button.place(x=150, y=start_y + 100, width=200, height=25)
-    locationB_button.configure(font=14)
-    locationB_button.configure(background="#98FB98")
+    clientSocket.send(bytes("GET_LOCATIONS".encode('utf-8')))
+    locations = clientSocket.recv(BUFSIZE).decode('utf-8')
+    locations = ast.literal_eval(locations)
+    print(locations)
+    location_buttons = []
+    index = 0
+    for l in locations:
+        start_y += 50
+        location_buttons.append(Button(text=l[1], command=clear_window))
+        location_buttons[index].place(x=x, y=start_y, width=width, height=height)
+        location_buttons[index].configure(font=14)
+        location_buttons[index].configure(background="#98FB98")
+        index += 1
 
-    locationC_button = Button(text="Location C", command=clear_window)
-    locationC_button.place(x=150, y=start_y + 150, width=200, height=25)
-    locationC_button.configure(font=14)
-    locationC_button.configure(background="#98FB98")
+    # locationA_button = Button(text="Location A", command=clear_window)
+    # locationA_button.place(x=150, y=start_y + 50, width=200, height=25)
+    # locationA_button.configure(font=14)
+    # locationA_button.configure(background="#98FB98")
+
+    # locationB_button = Button(text="Location B", command=clear_window)
+    # locationB_button.place(x=150, y=start_y + 100, width=200, height=25)
+    # locationB_button.configure(font=14)
+    # locationB_button.configure(background="#98FB98")
+
+    # locationC_button = Button(text="Location C", command=clear_window)
+    # locationC_button.place(x=150, y=start_y + 150, width=200, height=25)
+    # locationC_button.configure(font=14)
+    # locationC_button.configure(background="#98FB98")
 
 #
 def clientLogin(un, pw):
@@ -59,7 +78,7 @@ def clientLogin(un, pw):
     login_state = login_state.decode('utf-8')
 
     if login_state == "USER_NOT_EXIST":
-        register_label = Label(text="The user not exists!")
+        register_label = Label(text="The user does not exist!")
         register_label.place(x=150, y=220)
         register_label.configure(fg="red")
     elif login_state == "USER_NOT_VERIFIED":
@@ -80,7 +99,7 @@ def registerClient(un, pw):
     regis_state = clientSocket.recv(BUFSIZE)
     regis_state = regis_state.decode('utf-8')
     # --------------------------------------
-    if regis_state == "USER_REGISTERD":
+    if regis_state == "USER_EXISTS":
         register_label = Label(text="The user already exists!")
         register_label.place(x=150, y=220)
         register_label.configure(fg="red")
