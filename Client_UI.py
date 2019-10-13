@@ -172,10 +172,6 @@ def login_page():
     register_button.place(x=300, y=450, width=50, height=20)
 
 
-def return_bike_page(hours, minutes):
-    print(hours, minutes)
-    
-
 
 def timmer(s_initial, time_label):
     global first_timmer
@@ -210,10 +206,82 @@ def timmer_page():
     time_label = Label(text="", font = ('Helvetica', 48), fg='red')
     time_label.place(x = 170, y = 210)
 
-    return_button = Button(text = "Return Bike", command = lambda: return_bike_page(hours, minutes), font = ('Helvetica', 12))
+    return_button = Button(text = "Return Bike", command = lambda: trip_summary_page(hours, minutes), font = ('Helvetica', 12))
     return_button.place(x = 150, y = 400, width = 200, height = 25)
 
     timmer( int(strftime("%S")), time_label )
+
+
+# billing screen
+def trip_summary_page(hours, minutes):
+    clear_window()
+
+    pay = StringVar()
+    # setting payment to label, 0.2 pounds each minute
+    payment = minutes * 0.2 + hours * 60 * 0.2
+    pay.set(payment)
+
+    tripend_label = Label(text="Trip Summary")
+    tripend_label.place(x=200, y=10)
+    tripend_label.configure(font=my_font)
+
+    # for displaying end time / trip duration
+
+    endtime_label = Label(text= ("Duration \n" + str(hours) + " hours and " + str(minutes)) + " minutes" )  # (textvariable=end_loc)
+    endtime_label.place(x=150, y=100, width=200, height=50)
+    endtime_label.configure(font=my_font)
+
+    # dropdown for endloc
+    global hint
+    hint = StringVar()
+    hint.set("Select  location ")
+    endlocation_menu = OptionMenu(window, hint, "Location A", "Location B", "Location C")
+    endlocation_menu.place(x=190, y=170)
+    endlocation_menu.configure(font=my_font)
+
+    # payment
+    pay_label = Label(textvariable=pay)
+    pay_label.place(x=150, y=250, width=200, height=25)
+    pay_label.configure(font=my_font)
+
+    pay_button = Button(text="Pay", command=open_pay)
+    pay_button.place(x=210, y=350, width=70, height=20)
+    pay_button.configure(font=my_font)
+    
+
+def open_pay():
+    clear_window()
+
+    statment_label1 = Label(text="Payment Successfull.")
+    statment_label1.place(x=180, y=150)
+    statment_label1.configure(font=my_font)
+
+    back_button = Button(text="Complete Trip", command=map_page)
+    back_button.place(x=300, y=350, width=120, height=30)
+    back_button.configure(font=my_font)
+
+    report_button = Button(text="Report Bike", command=open_reporter)
+    report_button.place(x=100, y=350, width=120, height=30)
+    report_button.configure(font=my_font)
+    print("pay")
+
+
+def open_reporter():
+    clear_window()
+
+    report_label = Label(text="Report")
+    report_label.place(x=230, y=10)
+    report_label.configure(font=my_font)
+
+    statment_label2 = Label(text="You're report has be noticed.")
+    statment_label2.place(x=160, y=150)
+    statment_label2.configure(font=my_font)
+
+    back_button = Button(text="Complete Trip", command=map_page)
+    back_button.place(x=200, y=350, width=120, height=30)
+    back_button.configure(font=my_font)
+
+
 
 ######## main #########
     
@@ -226,7 +294,6 @@ def main_page():
     window.mainloop()
 
 window = Tk()
-my_font 
 minutes = 0
 hours = 0
 first_timmer = True
