@@ -215,6 +215,88 @@ def timmer_page():
 
     timmer( int(strftime("%S")), time_label )
 
+def bike_list_page(stationId):
+    
+     #clear_window()
+     # create a canvas object and a vertical scrollbar for scrolling it
+     vscrollbar = Scrollbar(window, orient='vertical')
+     vscrollbar.pack(side='right', fill='y', expand='False')
+     canvas = Canvas(window, bd=0, highlightthickness=0,
+                        yscrollcommand=vscrollbar.set)
+     canvas.pack(side="left", fill="both", expand="True")
+     vscrollbar.config(command=canvas.yview)
+     
+     # reset the view
+     canvas.xview_moveto(0)
+     canvas.yview_moveto(0)
+ 
+     # create a frame inside the canvas which will be scrolled with it
+     interior = Frame(canvas)
+     window.interior = interior
+     interior_id = canvas.create_window(0, 0, window=interior,
+                                           anchor='nw')
+     
+     # track changes to the canvas and frame width and sync them,
+     # also updating the scrollbar
+     def configure_interior(event):
+        # update the scrollbars to match the size of the inner frame
+        size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
+        canvas.config(scrollregion="0 0 %s %s" % size)
+        if interior.winfo_reqwidth() != canvas.winfo_width():
+            # update the canvas's width to fit the inner frame
+            canvas.config(width=interior.winfo_reqwidth())
+            
+     interior.bind('<Configure>', configure_interior)
+    
+     def configure_canvas(event):
+        if interior.winfo_reqwidth() != canvas.winfo_width():
+            # update the inner frame's width to fill the canvas
+            canvas.itemconfigure(interior_id, width=canvas.winfo_width())
+    
+     canvas.bind('<Configure>', configure_canvas)
+     drawButtons(stationId)
+     
+def drawButtons(stationId):
+    # This is the db code
+    
+    #conn = sql.connect("bikesharing.db")
+    #c = conn.cursor()
+    #c.execute("""SELECT id 
+    #          FROM Bikes 
+    #         WHERE condition=? AND location_id = ?;
+    #          """,(1,stationId))
+    #conn.commit()
+    #bikelist = c.fetchall()
+    
+    # This is the test code
+    bikelist = ["Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike"]
+    for i,x in enumerate(bikelist):
+        btn = Button(window.interior, height=1, width=20, relief="flat", 
+                        bg="gray99", fg="black",
+                        font="Dosis", text = bikelist[i],
+                        command=lambda i=i: openlink(bikelist[i]))
+        btn.pack(padx=10, pady=5, side="top") 
+        
+def openlink(i):
+    popup = Toplevel(window)
+    popup.geometry("250x100")
+    popup.grab_set()
+    l1 = Label(popup,text = "Confirm Selection")
+    l1.pack(fill = "y")
+    l2 = Label(popup,text=i)
+    l2.pack(fill = "y")
+    y = Button(popup, height = 1, width = 5 , text = "Yes",command = lambda p=popup: popup_release(popup))
+    y.pack(side="left",padx = 15)
+    r = Button(popup, height = 1, width = 7 , text = "bike bad",command = lambda p=popup: popup_release(popup))
+    r.pack(side="left",padx = 30)
+    n = Button(popup, height = 1, width = 5 , text = "No",command = lambda p=popup: popup_release(popup))
+    n.pack(side="right",padx = 15)
+    popup.mainloop()
+
+def popup_release(master):
+    master.grab_release()
+    master.destroy()
+
 ######## main #########
     
 def main_page():
