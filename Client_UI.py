@@ -226,7 +226,6 @@ def main_page():
     window.mainloop()
 
 window = Tk()
-my_font 
 minutes = 0
 hours = 0
 first_timmer = True
