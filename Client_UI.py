@@ -208,7 +208,7 @@ def timmer_page():
     time_title.place(x = 180, y = 180)
 
     time_label = Label(text="", font = ('Helvetica', 48), fg='red')
-    time_label.place(x = 170, y = 210)
+    time_label.place(x=170, y=210)
 
     return_button = Button(text = "Return Bike", command = lambda: return_bike_page(hours, minutes), font = ('Helvetica', 12))
     return_button.place(x = 150, y = 400, width = 200, height = 25)
