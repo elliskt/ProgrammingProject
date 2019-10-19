@@ -47,26 +47,26 @@ def map_page():
     index = 0
     for l in locations:
         start_y += 50
-        location_buttons.append(Button(text=l[1], command=clear_window))
+        location_buttons.append(Button(text=l[1], command = lambda: bike_list_page(index))) #locations idexed from 0..
         location_buttons[index].place(x=x, y=start_y, width=width, height=height)
         location_buttons[index].configure(font=14)
         location_buttons[index].configure(background="#98FB98")
         index += 1
 
-    # locationA_button = Button(text="Location A", command=clear_window)
-    # locationA_button.place(x=150, y=start_y + 50, width=200, height=25)
-    # locationA_button.configure(font=14)
-    # locationA_button.configure(background="#98FB98")
-
-    # locationB_button = Button(text="Location B", command=clear_window)
-    # locationB_button.place(x=150, y=start_y + 100, width=200, height=25)
-    # locationB_button.configure(font=14)
-    # locationB_button.configure(background="#98FB98")
-
-    # locationC_button = Button(text="Location C", command=clear_window)
-    # locationC_button.place(x=150, y=start_y + 150, width=200, height=25)
-    # locationC_button.configure(font=14)
-    # locationC_button.configure(background="#98FB98")
+#    locationA_button = Button(text="Location A",command = lambda: bike_list_page(1))
+#    locationA_button.place(x=150, y=start_y + 50, width=200, height=25)
+#    locationA_button.configure(font=14)
+#    locationA_button.configure(background="#98FB98")
+#
+#    locationB_button = Button(text="Location B", command=clear_window)
+#    locationB_button.place(x=150, y=start_y + 100, width=200, height=25)
+#    locationB_button.configure(font=14)
+#    locationB_button.configure(background="#98FB98")
+#
+#    locationC_button = Button(text="Location C", command=clear_window)
+#    locationC_button.place(x=150, y=start_y + 150, width=200, height=25)
+#    locationC_button.configure(font=14)
+#    locationC_button.configure(background="#98FB98")
 
 #
 def clientLogin(un, pw):
@@ -220,6 +220,8 @@ def timmer(s_initial, time_label):
 
 def timmer_page():
     
+    clear_window()
+    
     title = Label(text = "Your trip has started", font = ('Helvetica', 18))
     title.place(x = 140, y = 70)
 
@@ -229,15 +231,17 @@ def timmer_page():
     time_label = Label(text="", font = ('Helvetica', 48), fg='red')
     time_label.place(x=170, y=210)
 
-    return_button = Button(text = "Return Bike", command = lambda: return_bike_page(hours, minutes), font = ('Helvetica', 12))
+    return_button = Button(text = "Return Bike", command = lambda: trip_summary_page(hours, minutes), font = ('Helvetica', 12))
     return_button.place(x = 150, y = 400, width = 200, height = 25)
 
     timmer( int(strftime("%S")), time_label )
 
-def bike_list_page(stationId):
+def bike_list_page(stationId): # location indexed from 0..
     
      #clear_window()
      # create a canvas object and a vertical scrollbar for scrolling it
+  
+     
      vscrollbar = Scrollbar(window, orient='vertical')
      vscrollbar.pack(side='right', fill='y', expand='False')
      canvas = Canvas(window, bd=0, highlightthickness=0,
@@ -288,6 +292,8 @@ def drawButtons(stationId):
     #bikelist = c.fetchall()
     
     # This is the test code
+    show_back_button(map_page)
+    
     bikelist = ["Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike"]
     for i,x in enumerate(bikelist):
         btn = Button(window.interior, height=1, width=20, relief="flat", 
@@ -298,31 +304,148 @@ def drawButtons(stationId):
         
 def openlink(i):
     popup = Toplevel(window)
-    popup.geometry("250x100")
+    w = 250 # width for the Tk root
+    h = 100 # height for the Tk root
+    ws = window.winfo_vrootwidth() # width of root window
+    hs = window.winfo_vrootheight() # height of the root window
+    x = (ws/2) - (w/2)
+    y = (hs/2) - (h/2)
+    popup.geometry('%dx%d+%d+%d' % (w, h, x, y))  # place the popup in the middle of the window
     popup.grab_set()
-    l1 = Label(popup,text = "Confirm Selection")
+    l1 = Label(popup,text = "Confirm Selection?")
     l1.pack(fill = "y")
     l2 = Label(popup,text=i)
     l2.pack(fill = "y")
-    y = Button(popup, height = 1, width = 5 , text = "Yes",command = lambda p=popup: popup_release(popup))
-    y.pack(side="left",padx = 15)
-    r = Button(popup, height = 1, width = 7 , text = "bike bad",command = lambda p=popup: popup_release(popup))
+    
+    go_to = "open_reporter"
+    
+    go_to2 = "timmer_page"
+    
+    r = Button(popup, height = 1, width = 10 , text = "Report Bike", command = lambda p=popup: popup_release(popup, go_to))
     r.pack(side="left",padx = 30)
-    n = Button(popup, height = 1, width = 5 , text = "No",command = lambda p=popup: popup_release(popup))
+    n = Button(popup, height = 1, width = 10 , text = "Confirm",command = lambda p=popup: popup_release(popup, go_to2))
     n.pack(side="right",padx = 15)
     popup.mainloop()
 
-def popup_release(master):
+def popup_release(master, go_to):
     master.grab_release()
     master.destroy()
+    
+    if go_to == "map_page":
+        map_page()
+    elif go_to == "open_reporter":
+        open_reporter()
+    elif go_to == "timmer_page":
+        timmer_page()
+  
 
+def open_reporter():
+    popup = Toplevel(window)
+    
+    w = 250 # width for the Tk root
+    h = 100 # height for the Tk root
+    ws = window.winfo_vrootwidth() # width of root window
+    hs = window.winfo_vrootheight() # height of the root window
+    x = (ws/2) - (w/2)
+    y = (hs/2) - (h/2)
+    popup.geometry('%dx%d+%d+%d' % (w, h, x, y)) # place the popup in the middle of the window
+    
+    popup.grab_set()
+    
+    go_to = "map_page"
+    
+    message_label = Label(popup,text = "You're report has be noticed.")
+    message_label.pack(fill = "y")
+    
+    confirm_btn = Button(popup, height = 1, width = 10 , text = "Confirm",command = lambda p=popup: popup_release(popup,go_to))
+    confirm_btn.place(x=80, y= 60)
+    popup.mainloop()
+    
+# billing screen
+def trip_summary_page(hours, minutes):
+    clear_window()
+
+    tripend_label = Label(text="Trip Summary")
+    tripend_label.place(x=180, y=30)
+    tripend_label.configure(font=title_font)
+
+    # for displaying end time / trip duration
+
+    endtime_label = Label(text="Duration: " + str(hours) + " hours and " + str(minutes) + " minutes")  # (textvariable=end_loc)
+    endtime_label.place(x=150, y=100, width=230, height=50)
+    endtime_label.configure(font=my_font)
+    
+
+    # payment
+    # setting payment to label, 0.2 pounds each minute
+    p =  str(minutes * 0.2 + hours * 60 * 0.2)
+    pay_label = Label(text= "Money: " +  p + " pounds ")
+    pay_label.place(x=150, y=200, width=200, height=25)
+    pay_label.configure(font=my_font)
+    
+    # dropdown for endloc
+    global hint
+    hint = StringVar()
+    selection_info = "Select ending location "
+    hint.set(selection_info)
+    endlocation_menu = OptionMenu(window, hint, "Location A", "Location B", "Location C")
+    endlocation_menu.place(x=160, y=300, width = 200)
+    endlocation_menu.configure(font=my_font)
+    
+    
+    pay_button = Button(text="Pay", command = lambda: verify_location(hours,minutes,hint.get(), selection_info))
+    pay_button.place(x=200, y=420, width=120, height=30)
+    pay_button.configure(font=my_font)
+    
+def verify_location(h, m , sel, sel_info):
+    
+    if sel == sel_info:
+        trip_summary_page(h, m)
+        register_label = Label(text="Please select the ending location!")
+        register_label.place(x=170, y=370)
+        register_label.configure(fg="red")
+        
+    else:
+        open_pay()
+        
+def open_pay():
+    
+    clear_window()
+
+    statment_label1 = Label(text="Payment Successfull.")
+    statment_label1.place(x=180, y=150)
+    statment_label1.configure(font=my_font)
+
+    back_button = Button(text="Complete Trip", command=map_page)
+    back_button.place(x=300, y=350, width=120, height=30)
+    back_button.configure(font=my_font)
+
+    report_button = Button(text="Report Bike", command=open_reporter)
+    report_button.place(x=100, y=350, width=120, height=30)
+    report_button.configure(font=my_font)
+    
+    
+    
 ######## main #########
     
 def main_page():
     window.title("BikeSharing")
-    window.geometry("500x530")
+    w = 500 # width for the Tk root
+    h = 530 # height for the Tk root
+    
+    # get screen width and height
+    ws = window.winfo_screenwidth() # width of the screen
+    hs = window.winfo_screenheight() # height of the screen
+    
+    # calculate x and y coordinates for the Tk root window
+    x = (ws/2) - (w/2)
+    y = (hs/2) - (h/2)
+    window.geometry('%dx%d+%d+%d' % (w, h, x, y)) # place the window in the middle of the screen
+
     global my_font
     my_font = Font(size=12)
+    global title_font
+    title_font = ('Helvetica', 18)
     login_page()
     window.mainloop()
 
