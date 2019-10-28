@@ -19,7 +19,7 @@ def show_back_button(previous_page):
     back_button.configure(background="#66A1DC")
 
 
-def map_page():
+def locationsPage():
     clear_window()
 
     show_back_button(login_page)
@@ -39,43 +39,29 @@ def map_page():
     height = 25
     x = 150
 
-    clientSocket.send(bytes("GET_LOCATIONS".encode('utf-8')))
-    locations = clientSocket.recv(BUFSIZE).decode('utf-8')
+    # Asking server for location names in the "Locations" table
+    clientSocket.send(bytes(('("GET_COLUMNS_IN_TABLE", ("Locations", "name"))').encode('UTF-8')))
+    locations = clientSocket.recv(BUFSIZE).decode('UTF-8')
     locations = ast.literal_eval(locations)
-    print(locations)
     location_buttons = []
     index = 0
-    for l in locations:
+    for location in locations:
         start_y += 50
-        location_buttons.append(Button(text=l[1], command = lambda: bike_list_page(index))) #locations idexed from 0..
+        location_buttons.append(Button(text=location[0], command = lambda: bike_list_page(location[0]))) #location[0] = location name
         location_buttons[index].place(x=x, y=start_y, width=width, height=height)
         location_buttons[index].configure(font=14)
         location_buttons[index].configure(background="#98FB98")
         index += 1
 
-#    locationA_button = Button(text="Location A",command = lambda: bike_list_page(1))
-#    locationA_button.place(x=150, y=start_y + 50, width=200, height=25)
-#    locationA_button.configure(font=14)
-#    locationA_button.configure(background="#98FB98")
-#
-#    locationB_button = Button(text="Location B", command=clear_window)
-#    locationB_button.place(x=150, y=start_y + 100, width=200, height=25)
-#    locationB_button.configure(font=14)
-#    locationB_button.configure(background="#98FB98")
-#
-#    locationC_button = Button(text="Location C", command=clear_window)
-#    locationC_button.place(x=150, y=start_y + 150, width=200, height=25)
-#    locationC_button.configure(font=14)
-#    locationC_button.configure(background="#98FB98")
-
-#
 def clientLogin(un, pw):
-    login_package = '%s %s' % (un, pw)               # the user may sent space will hence error here
-    clientSocket.send(b'verify_login')
-    clientSocket.recv(BUFSIZE)                      # receive the 'verify'
-    clientSocket.send(bytes(login_package.encode('utf-8')))
+    # ============ GUI should not allow username or passwords to include spaces===========
+    # login_package = '%s %s' % (un, pw)              # the user may sent space will hence error here
+    # print(type(login_package))
+    clientSocket.send(bytes(('("VERIFY_LOGIN", ("{}", "{}"))').format(un, pw).encode('UTF-8')))
+    # clientSocket.recv(BUFSIZE)                      # receive the 'verify'
+    # clientSocket.send(bytes(login_package.encode('UTF-8')))
     login_state = clientSocket.recv(BUFSIZE)
-    login_state = login_state.decode('utf-8')
+    login_state = login_state.decode('UTF-8')
 
     if login_state == "USER_NOT_EXIST":
         register_label = Label(text="The user does not exist!")
@@ -86,25 +72,30 @@ def clientLogin(un, pw):
         register_label.place(x=150, y=220)
         register_label.configure(fg="red")
     elif login_state == "USER_VERIFIED":
-        map_page()
+        locationsPage()
 
 
 def registerClient(un, pw):
     # the user may sent space will hence error here
-    regis_package = '%s %s' % (un, pw)
-    clientSocket.send(b'register')
-    clientSocket.recv(BUFSIZE)  # receive the 'register' package
+    # ============ GUI should not allow username or passwords to include spaces===========
+    # regis_package = '%s %s' % (un, pw) 
+
+    # ============ Bad design; serves no real purpose =============
+    # clientSocket.send(b'REGISTER')
+    # clientSocket.recv(BUFSIZE)  # receive the 'REGISTER' package
+
     # ---------- register to db ---------
-    clientSocket.send(bytes(regis_package.encode('utf-8')))
+    # clientSocket.send(bytes(regis_package.encode('UTF-8')))
+    clientSocket.send(bytes(('("REGISTER", ("{}", "{}"))').format(un, pw).encode('UTF-8')))
     regis_state = clientSocket.recv(BUFSIZE)
-    regis_state = regis_state.decode('utf-8')
+    regis_state = regis_state.decode('UTF-8')
     # --------------------------------------
     if regis_state == "USER_EXISTS":
         register_label = Label(text="The user already exists!")
         register_label.place(x=150, y=220)
         register_label.configure(fg="red")
     elif regis_state == "USER_REGISTERD":
-        map_page()
+        locationsPage()
 
 
 # def register(mobile, password):
@@ -117,7 +108,7 @@ def registerClient(un, pw):
 #         cursor.execute("""INSERT INTO user(mobile,password) VALUES(?,?)""", (mobile, password))
 #         db.commit()
 #         ## return to map
-#         map_page()
+#         locationsPage()
 #
 #
 def register_page():
@@ -196,8 +187,8 @@ def return_bike_page(hours, minutes):
     
 
 
-def timmer(s_initial, time_label):
-    global first_timmer
+def timer(s_initial, time_label):
+    global first_timer
     global minutes
     global hours
     
@@ -208,17 +199,17 @@ def timmer(s_initial, time_label):
     else:
         sec = s - s_initial
 
-    if sec == 0 and first_timmer == False:
+    if sec == 0 and first_timer == False:
         minutes = (minutes + 1) % 60
         if minutes == 0:
             hours = (hours + 1) % 60
     else:
-        first_timmer = False
+        first_timer = False
         
     time_label.configure(text = str(hours) + ":" + str(minutes) + ":" + str(sec)  )
-    time_label.after(1000, lambda: timmer(s_initial, time_label) )
+    time_label.after(1000, lambda: timer(s_initial, time_label) )
 
-def timmer_page():
+def timer_page():
     
     clear_window()
     
@@ -234,10 +225,10 @@ def timmer_page():
     return_button = Button(text = "Return Bike", command = lambda: trip_summary_page(hours, minutes), font = ('Helvetica', 12))
     return_button.place(x = 150, y = 400, width = 200, height = 25)
 
-    timmer( int(strftime("%S")), time_label )
+    timer( int(strftime("%S")), time_label )
 
 def bike_list_page(stationId): # location indexed from 0..
-    
+    # clientSocket.sendall(json.dumps('{"GET_COLUMNS_IN_TABLE", {"Bikes", "id, location_id"}}').encode('UTF-8'))
      #clear_window()
      # create a canvas object and a vertical scrollbar for scrolling it
   
@@ -277,7 +268,11 @@ def bike_list_page(stationId): # location indexed from 0..
             canvas.itemconfigure(interior_id, width=canvas.winfo_width())
     
      canvas.bind('<Configure>', configure_canvas)
-     drawButtons(stationId)
+     # drawButtons(stationId)
+     show_back_button(locationsPage)
+
+
+
      
 def drawButtons(stationId):
     # This is the db code
@@ -292,7 +287,7 @@ def drawButtons(stationId):
     #bikelist = c.fetchall()
     
     # This is the test code
-    show_back_button(map_page)
+    # show_back_button(locationsPage)
     
     bikelist = ["Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike"]
     for i,x in enumerate(bikelist):
@@ -319,7 +314,7 @@ def openlink(i):
     
     go_to = "open_reporter"
     
-    go_to2 = "timmer_page"
+    go_to2 = "timer_page"
     
     r = Button(popup, height = 1, width = 10 , text = "Report Bike", command = lambda p=popup: popup_release(popup, go_to))
     r.pack(side="left",padx = 30)
@@ -331,12 +326,12 @@ def popup_release(master, go_to):
     master.grab_release()
     master.destroy()
     
-    if go_to == "map_page":
-        map_page()
+    if go_to == "locationsPage":
+        locationsPage()
     elif go_to == "open_reporter":
         open_reporter()
-    elif go_to == "timmer_page":
-        timmer_page()
+    elif go_to == "timer_page":
+        timer_page()
   
 
 def open_reporter():
@@ -352,7 +347,7 @@ def open_reporter():
     
     popup.grab_set()
     
-    go_to = "map_page"
+    go_to = "locationsPage"
     
     message_label = Label(popup,text = "You're report has be noticed.")
     message_label.pack(fill = "y")
@@ -416,7 +411,7 @@ def open_pay():
     statment_label1.place(x=180, y=150)
     statment_label1.configure(font=my_font)
 
-    back_button = Button(text="Complete Trip", command=map_page)
+    back_button = Button(text="Complete Trip", command=locationsPage)
     back_button.place(x=300, y=350, width=120, height=30)
     back_button.configure(font=my_font)
 
@@ -452,7 +447,7 @@ def main_page():
 window = Tk()
 minutes = 0
 hours = 0
-first_timmer = True
+first_timer = True
 main_page()
 
 

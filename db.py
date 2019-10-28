@@ -1,5 +1,6 @@
 import sqlite3 as sql
 import numpy as np
+import deprecated
 
 class database(object):
 	def __init__(self):
@@ -127,9 +128,33 @@ class database(object):
 		for i in self.cursor.fetchall():
 			print(i)
 
+	@deprecated (reason="You should use 'getColumnsInDB' instead")
 	def getDB(self, table):
-		self.cursor.execute(""" SELECT * FROM {}""".format(table))
-		return self.cursor.fetchall() #returns a list of DB records
+		try:
+			self.cursor.execute(""" SELECT * FROM {}""".format(table))
+			return self.cursor.fetchall() #returns a list of DB records
+		except sql.OperationalError as e:
+			return e
+
+	def getColumnsInDB(self, data):
+		try:
+			table, columns = data[0], data[1]
+			# print(data)
+			# print((" SELECT "+columns+" FROM "+table))
+			self.cursor.execute((" SELECT "+columns+" FROM "+table))
+			return self.cursor.fetchall()
+		except sql.OperationalError as e:
+			return e
+
+	@deprecated (reason="You should use 'getColumnsInDB' instead")
+	def getBikesInLocation(self, _location_id):
+		try:
+			self.cursor.execute(""" SELECT id FROM Bikes
+				WHERE location_id = {}""".format(_location_id))
+			return self.cursor.fetchall()
+		except sql.OperationalError as e:
+			print("Location does not exist!")
+
 
 
 #=================== TESTING ===================

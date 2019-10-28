@@ -16,6 +16,8 @@ def client_connect_server():
     except ConnectionRefusedError:
         print("Server error, please try again")
         exit(1)
+
+        
     # -------------------------------
 
 

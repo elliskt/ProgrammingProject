@@ -37,5 +37,12 @@
 from db import *
 
 db = database()
-records = db.getDB("Locations")
-print(records)
+# records = db.getDB("Locations")
+# records = db.getBikesInLocation(_location_id=3)
+records = db.getColumnsInDB( "Bikes", "id, location_id")
+for r in records:
+	print(r)
+# db.cursor.execute("""SELECT id, location_id FROM Bikes
+# 	WHERE location_id = 1""")
+# print(db.cursor.fetchall())
+# db.printDB("Locations")
