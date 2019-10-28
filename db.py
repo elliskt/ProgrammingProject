@@ -128,13 +128,22 @@ class database(object):
 		for i in self.cursor.fetchall():
 			print(i)
 
-	@deprecated (reason="You should use 'getColumnsInDB' instead")
+	# Deprecated 
 	def getDB(self, table):
 		try:
 			self.cursor.execute(""" SELECT * FROM {}""".format(table))
 			return self.cursor.fetchall() #returns a list of DB records
 		except sql.OperationalError as e:
 			return e
+
+	# Deprecated
+	def getBikesInLocation(self, _location_id):
+		try:
+			self.cursor.execute(""" SELECT id FROM Bikes
+				WHERE location_id = {}""".format(_location_id))
+			return self.cursor.fetchall()
+		except sql.OperationalError as e:
+			print("Location does not exist!")
 
 	def getColumnsInDB(self, data):
 		try:
@@ -145,15 +154,6 @@ class database(object):
 			return self.cursor.fetchall()
 		except sql.OperationalError as e:
 			return e
-
-	@deprecated (reason="You should use 'getColumnsInDB' instead")
-	def getBikesInLocation(self, _location_id):
-		try:
-			self.cursor.execute(""" SELECT id FROM Bikes
-				WHERE location_id = {}""".format(_location_id))
-			return self.cursor.fetchall()
-		except sql.OperationalError as e:
-			print("Location does not exist!")
 
 
 
