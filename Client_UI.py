@@ -182,10 +182,6 @@ def login_page():
     register_button.place(x=300, y=450, width=50, height=20)
 
 
-def return_bike_page(hours, minutes):
-    print(hours, minutes)
-    
-
 
 def timer(s_initial, time_label):
     global first_timer
@@ -268,13 +264,14 @@ def bike_list_page(stationId): # location indexed from 0..
             canvas.itemconfigure(interior_id, width=canvas.winfo_width())
     
      canvas.bind('<Configure>', configure_canvas)
-     # drawButtons(stationId)
+     
+     draw_buttons(stationId) # if it's an operator should draw operator_buttons
      show_back_button(locationsPage)
 
 
 
      
-def drawButtons(stationId):
+def draw_buttons(stationId):
     # This is the db code
     
     #conn = sql.connect("bikesharing.db")
@@ -296,6 +293,48 @@ def drawButtons(stationId):
                         font="Dosis", text = bikelist[i],
                         command=lambda i=i: openlink(bikelist[i]))
         btn.pack(padx=10, pady=5, side="top") 
+        
+def draw_operator_buttons(stationId):
+    # This is the db code
+    
+    #conn = sql.connect("bikesharing.db")
+    #c = conn.cursor()
+    #c.execute("""SELECT id 
+    #          FROM Bikes 
+    #         WHERE condition=? AND location_id = ?;
+    #          """,(1,stationId))
+    #conn.commit()
+    #bikelist = c.fetchall()
+    
+    # This is the test code
+#    show_back_button(map_page)
+
+    
+    bikelist = ["Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike"]
+    for i,x in enumerate(bikelist):
+         
+        btnwrapper = Frame(window.interior)
+       
+        bike_label = Label(btnwrapper, height=1, width=10, relief= RIDGE,
+                        bg="gray99", fg="black",
+                        font="Dosis", text = bikelist[i])
+       
+        repair = Button(btnwrapper, height=1, width=10, relief = RIDGE,	
+                        bg="gray99", fg="black",
+                        font="Dosis", text = "Repair",
+                        command=lambda i=i: repair_bike_popup(bikelist[i]))
+       
+        move = Button(btnwrapper, height=1, width=10, relief = RIDGE,
+                        bg="gray99", fg="black",
+                        font="Dosis", text = "Move",
+                        command=lambda i=i: move_bike_popup(bikelist[i]))
+       
+       
+        bike_label.pack(padx=0, pady=10, side="left")
+        repair.pack(padx=0, pady=5, side="left")
+        move.pack(padx=0, pady=5, side="left")
+        btnwrapper.pack(side="top")
+   
         
 def openlink(i):
     popup = Toplevel(window)
@@ -320,6 +359,55 @@ def openlink(i):
     r.pack(side="left",padx = 30)
     n = Button(popup, height = 1, width = 10 , text = "Confirm",command = lambda p=popup: popup_release(popup, go_to2))
     n.pack(side="right",padx = 15)
+    popup.mainloop()
+    
+def repair_bike_popup(i):
+    popup = Toplevel(window)
+    w = 250 # width for the Tk root
+    h = 100 # height for the Tk root
+    ws = window.winfo_vrootwidth() # width of root window
+    hs = window.winfo_vrootheight() # height of the root window
+    x = (ws/2) - (w/2)
+    y = (hs/2) - (h/2)
+    popup.geometry('%dx%d+%d+%d' % (w, h, x, y))  # place the popup in the middle of the window
+    popup.grab_set()
+    l1 = Label(popup,text = "Confirm sending bike to service?")
+    l1.pack(fill = "y")
+    l2 = Label(popup,text=i)
+    l2.pack(fill = "y")
+    
+    go_to = ""
+    
+    n = Button(popup, height = 1, width = 10 , text = "Confirm",command = lambda p=popup: popup_release(popup, go_to))
+    n.pack(side="top",padx = 15, pady = 15)
+    popup.mainloop()
+    
+def move_bike_popup(i):
+    popup = Toplevel(window)
+    w = 250 # width for the Tk root
+    h = 150 # height for the Tk root
+    ws = window.winfo_vrootwidth() # width of root window
+    hs = window.winfo_vrootheight() # height of the root window
+    x = (ws/2) - (w/2)
+    y = (hs/2) - (h/2)
+    popup.geometry('%dx%d+%d+%d' % (w, h, x, y))  # place the popup in the middle of the window
+    popup.grab_set()
+    l1 = Label(popup,text = "Confirm moving bike to another location?")
+    l1.pack(fill = "y")
+    
+    l2 = Label(popup,text=i)
+    l2.pack(fill = "y")
+    
+    go_to = ""
+    
+    opt = StringVar(popup)
+    selection_info = "Select next location "
+    opt.set(selection_info)
+    next_location_menu = OptionMenu(popup, opt, "Location A", "Location B", "Location C")
+    next_location_menu.pack(side = "left", padx = 10)
+ 
+    n = Button(popup, height = 1, width = 10 , text = "Confirm",command = lambda p=popup: popup_release(popup, go_to))
+    n.pack(side = "right", padx = 10)
     popup.mainloop()
 
 def popup_release(master, go_to):
