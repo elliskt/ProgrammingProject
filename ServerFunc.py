@@ -68,6 +68,8 @@ class bikeSharingServer(database):
             records = self.getColumnsInDB(tupleRcvd[1])
             # print(records)
             self.clientSocket.sendall(bytes(str(records).encode('utf-8')))
+            self.receiveCommand()
+
         # Deprecated
         # elif command == "GET_LOCATIONS":
         #     locations = self.getDB("Locations")
