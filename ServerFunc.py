@@ -18,13 +18,13 @@ class bikeSharingServer(database):
         # self.client_login = self.clientSocket.recv(self.BUFSIZE)
         # self.client_login = self.client_login.decode('utf-8')
         # self.mobile, pswd = self.client_login.split(' ')
-        print('[Server] Mobile number:', mobile)
-        print('[Server] Password:', pswd)
+        # print('[Server] Mobile number:', mobile)
+        # print('[Server] Password:', pswd)
         # ----- verify the username & password ---
         verificationStatus = self.verifyUser(mobile, pswd)
         # -----------------------------------------
         if verificationStatus == 'USER_VERIFIED':
-            print("[Server] %s login succeeded." % mobile)
+            print("[Server] %s login succeeded" % mobile)
         else:
             print("[Server] %s error: %s" % (mobile, verificationStatus))
         # return the result of this login attempt ("USER_NOT_EXIST, ", "USER_UNVERIFIED", "USER_VERIFIED")
@@ -63,8 +63,10 @@ class bikeSharingServer(database):
             self.authenticateUser(tupleRcvd[1]) 
         elif command == 'REGISTER':# Command structure: ("mobile_number", "password")
             self.registerUser(tupleRcvd[1])
-        elif command == "GET_COLUMNS_IN_TABLE": # Command structure: ("Table_name", "column1, column2, column3, etc"))
+        elif command == "GET_COLUMNS_IN_TABLE": # Command structure: ("Table_name", "column1, column2, column3, etc", "conditions")
+            # print(tupleRcvd[1])
             records = self.getColumnsInDB(tupleRcvd[1])
+            # print(records)
             self.clientSocket.sendall(bytes(str(records).encode('utf-8')))
         # Deprecated
         # elif command == "GET_LOCATIONS":

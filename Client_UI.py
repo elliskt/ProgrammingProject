@@ -7,6 +7,21 @@ import math
 import ast
 client_connect_server()
 
+# from tkinter import *
+# from Client import *
+
+# client_connect_server()
+# master = Tk()
+
+# def callback(stationId):
+#     print(stationId)
+#     clientSocket.sendall(bytes(('("GET_COLUMNS_IN_TABLE", ("Bikes", "id", "location_id={}"))'.format(stationId)).encode('UTF-8')))
+#     print("Command sent")
+#     bikes = clientSocket.recv(BUFSIZE).decode('UTF-8')
+#     print(type(bikes))
+
+# b = Button(master, text="OK", command=lambda: callback(2))
+# b.pack()
 
 def clear_window():
     for widget in window.winfo_children():
@@ -18,6 +33,16 @@ def show_back_button(previous_page):
     back_button.place(x=10, y=10, width=50, height=25)
     back_button.configure(background="#66A1DC")
 
+def locationPageHelper(stationId):
+    print(stationId)
+    # clientSocket.shutdown(1)
+    # clientSocket.close()
+    # client_connect_server()
+    clear_window()
+    clientSocket.sendall(bytes(('("GET_COLUMNS_IN_TABLE", ("Locations", "id, name"))').encode('UTF-8')))
+    print("Command sent")
+    bikes = clientSocket.recv(BUFSIZE).decode('UTF-8')
+    print(bikes)
 
 def locationsPage():
     clear_window()
@@ -40,26 +65,28 @@ def locationsPage():
     x = 150
 
     # Asking server for location names in the "Locations" table
-    clientSocket.send(bytes(('("GET_COLUMNS_IN_TABLE", ("Locations", "name"))').encode('UTF-8')))
+    clientSocket.sendall(bytes(('("GET_COLUMNS_IN_TABLE", ("Locations", "id, name"))').encode('UTF-8')))
     locations = clientSocket.recv(BUFSIZE).decode('UTF-8')
     locations = ast.literal_eval(locations)
     location_buttons = []
     index = 0
     for location in locations:
         start_y += 50
-        location_buttons.append(Button(text=location[0], command = lambda: bike_list_page(location[0]))) #location[0] = location name
+        location_buttons.append(Button(text=location[1])) #location[0] = location ID
+        location_buttons[index]['command'] = lambda id=location[0]: locationPageHelper(id)
         location_buttons[index].place(x=x, y=start_y, width=width, height=height)
         location_buttons[index].configure(font=14)
         location_buttons[index].configure(background="#98FB98")
         index += 1
+    # locationPageHelper()
 
 def clientLogin(un, pw):
     # ============ GUI should not allow username or passwords to include spaces===========
     # login_package = '%s %s' % (un, pw)              # the user may sent space will hence error here
     # print(type(login_package))
-    clientSocket.send(bytes(('("VERIFY_LOGIN", ("{}", "{}"))').format(un, pw).encode('UTF-8')))
+    clientSocket.sendall(bytes(('("VERIFY_LOGIN", ("{}", "{}"))').format(un, pw).encode('UTF-8')))
     # clientSocket.recv(BUFSIZE)                      # receive the 'verify'
-    # clientSocket.send(bytes(login_package.encode('UTF-8')))
+    # clientSocket.sendall(bytes(login_package.encode('UTF-8')))
     login_state = clientSocket.recv(BUFSIZE)
     login_state = login_state.decode('UTF-8')
 
@@ -81,12 +108,12 @@ def registerClient(un, pw):
     # regis_package = '%s %s' % (un, pw) 
 
     # ============ Bad design; serves no real purpose =============
-    # clientSocket.send(b'REGISTER')
+    # clientSocket.sendall(b'REGISTER')
     # clientSocket.recv(BUFSIZE)  # receive the 'REGISTER' package
 
     # ---------- register to db ---------
-    # clientSocket.send(bytes(regis_package.encode('UTF-8')))
-    clientSocket.send(bytes(('("REGISTER", ("{}", "{}"))').format(un, pw).encode('UTF-8')))
+    # clientSocket.sendall(bytes(regis_package.encode('UTF-8')))
+    clientSocket.sendall(bytes(('("REGISTER", ("{}", "{}"))').format(un, pw).encode('UTF-8')))
     regis_state = clientSocket.recv(BUFSIZE)
     regis_state = regis_state.decode('UTF-8')
     # --------------------------------------
@@ -228,11 +255,19 @@ def timer_page():
     timer( int(strftime("%S")), time_label )
 
 def bike_list_page(stationId): # location indexed from 0..
-    # clientSocket.sendall(json.dumps('{"GET_COLUMNS_IN_TABLE", {"Bikes", "id, location_id"}}').encode('UTF-8'))
-     #clear_window()
+     clear_window()
+     print("Station ID: ", stationId)
+     # clientSocket.sendall(bytes(('("GET_COLUMNS_IN_TABLE", ("Bikes", "id, location_id"))').encode('UTF-8')))
+     clientSocket.sendall(bytes(('("GET_COLUMNS_IN_TABLE", ("Locations", "id, name"))').encode('UTF-8')))
+     print("Command sent")
+     # clientSocket.sendall(bytes(('("GET_COLUMNS_IN_TABLE", ("Bikes", "id, location_id")').encode('UTF-8')))
+     aliBaba = clientSocket.recv(BUFSIZE).decode('UTF-8')
+     print("Command decoded")
+     print(aliBaba)
+     aliBaba = ast.literal_eval(aliBaba)
+     print("Command evaluated")
      # create a canvas object and a vertical scrollbar for scrolling it
   
-     
      vscrollbar = Scrollbar(window, orient='vertical')
      vscrollbar.pack(side='right', fill='y', expand='False')
      canvas = Canvas(window, bd=0, highlightthickness=0,
@@ -288,7 +323,20 @@ def drawButtons(stationId):
     
     # This is the test code
     # show_back_button(locationsPage)
-    
+    # clientSocket.sendall(bytes(('("GET_COLUMNS_IN_TABLE", ("Bikes", "id", "location_id={}"))'.format(stationId)).encode('UTF-8')))
+    # bikes = clientSocket.recv(BUFSIZE).decode('UTF-8')
+    # bikes = ast.literal_eval(bikes)
+    # print("Bikes ("+type(bikes)+"): "+bikes)
+    # bike_buttons = []
+    # index = 0
+    # for bike in bikes:
+    #     start_y += 50
+    #     bike_buttons.append(Button(text=bike[0], command = lambda: bike_list_page(bike[0]))) #location[0] = location name
+    #     bike_buttons[index].place(x=x, y=start_y, width=width, height=height)
+    #     bike_buttons[index].configure(font=14)
+    #     bike_buttons[index].configure(background="#98FB98")
+    #     index += 1
+
     bikelist = ["Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike","Bike"]
     for i,x in enumerate(bikelist):
         btn = Button(window.interior, height=1, width=20, relief="flat", 

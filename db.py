@@ -61,7 +61,7 @@ class database(object):
 				print("ERROR: ", e.args[0])
 		return "USER_REGISTERD" # Operation successful
 
-	def verifyUser(self, mobile, pswd):  # return
+	def verifyUser(self, mobile, pswd):  # NOTE: This should be done at the server's end not in DB (Server should query DB for usr info. and verify at its end)
 		self.cursor.execute("""SELECT COUNT(1) FROM Users WHERE mobile = ? AND pswd = ?""", (mobile, pswd))
 		count = self.cursor.fetchall()[0][0] 
 		if count == 1:
@@ -145,12 +145,17 @@ class database(object):
 		except sql.OperationalError as e:
 			print("Location does not exist!")
 
+	# Expected "data" structure: ("Table_name", "column1, column2, column3, etc", "conditions")
 	def getColumnsInDB(self, data):
+		print("[Database] Getting: ", data)
+		if len(data) == 2:
+			table, columns = data
+			query = (" SELECT "+columns+" FROM "+table)
+		else:
+			table, columns, conditions = data
+			query = ("SELECT "+columns+" FROM "+table+" WHERE "+conditions)
 		try:
-			table, columns = data[0], data[1]
-			# print(data)
-			# print((" SELECT "+columns+" FROM "+table))
-			self.cursor.execute((" SELECT "+columns+" FROM "+table))
+			self.cursor.execute(query)
 			return self.cursor.fetchall()
 		except sql.OperationalError as e:
 			return e
