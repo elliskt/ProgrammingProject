@@ -13,7 +13,7 @@ def clear_window():
         widget.destroy()
 
 
-def show_back_button(previous_page):
+def show_back_button(previous_page, ):
     back_button = Button(text="<<", command=previous_page)
     back_button.place(x=10, y=10, width=50, height=25)
     back_button.configure(background="#66A1DC")
@@ -21,26 +21,21 @@ def show_back_button(previous_page):
 
 def locationsPage():
     clear_window()
-
     show_back_button(login_page)
-
     info_label = Label(text="Select your bike station: ")
     info_label.place(x=150, y=50)
     info_label.configure(font=14)
-
     marker = PhotoImage(file="./resources/location_icon.png")
     label_image = Label(image=marker)
     label_image.image = marker  # keep a reference
     label_image.place(x=180, y=90, width=128, height=128)
-
     start_y = 250
-
     width = 200
     height = 25
     x = 150
 
     # Asking server for location names in the "Locations" table
-    clientSocket.send(bytes(('("GET_COLUMNS_IN_TABLE", ("Locations", "name"))').encode('UTF-8')))
+    clientSocket.send(bytes(('("GET_LOCATIONS", ("Locations", "name"))').encode('UTF-8')))
     locations = clientSocket.recv(BUFSIZE).decode('UTF-8')
     locations = ast.literal_eval(locations)
     location_buttons = []
@@ -375,7 +370,6 @@ def repair_bike_popup(i):
     l1.pack(fill = "y")
     l2 = Label(popup,text=i)
     l2.pack(fill = "y")
-    
     go_to = ""
     
     n = Button(popup, height = 1, width = 10 , text = "Confirm",command = lambda p=popup: popup_release(popup, go_to))
@@ -492,9 +486,7 @@ def verify_location(h, m , sel, sel_info):
         open_pay()
         
 def open_pay():
-    
     clear_window()
-
     statment_label1 = Label(text="Payment Successfull.")
     statment_label1.place(x=180, y=150)
     statment_label1.configure(font=my_font)
@@ -510,7 +502,6 @@ def open_pay():
     
     
 ######## main #########
-    
 def main_page():
     window.title("BikeSharing")
     w = 500 # width for the Tk root

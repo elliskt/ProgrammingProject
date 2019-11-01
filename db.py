@@ -15,22 +15,32 @@ class database(object):
 			mobile	TEXT PRIMARY KEY,
 			pswd	TEXT NOT NULL,
 			name	TEXT,
-			type	INTEGER NOT NULL
+			type	INTEGER NOT NULL);""")
+		self.db.commit()
+
+		# ----------- Create Bikes table --------------
+		self.cursor.execute(""" 
+		CREATE TABLE IF NOT EXISTS `Bikes`(
+		`id`	INTEGER,
+		`location_id`	INTEGER,
+		`in_use`	BOOLEAN,
+		`loc_latitude`	REAL,
+		`loc_longtitude`	REAL,
+		`time_from`	DATETIME,
+		`condition`	BOOLEAN,
+		PRIMARY KEY(`id`),
+		FOREIGN KEY(`location_id`) REFERENCES `Locations`(`id`)
 		);""")
 		self.db.commit()
 
-		self.cursor.execute(""" CREATE TABLE IF NOT EXISTS Bikes(
-			id 			INTEGER PRIMARY KEY,
-			location_id	INTEGER,
-			condition 	BOOLEAN,
-			FOREIGN KEY (location_id) 
-				REFERENCES Locations(id)
-		);""")
-		self.db.commit()
-
-		self.cursor.execute(""" CREATE TABLE IF NOT EXISTS Locations(
-			id		INTEGER PRIMARY KEY,
-			name	TEXT
+		# ----------- Create Locations(Bike stop location) table --------
+		self.cursor.execute("""
+		CREATE TABLE IF NOT EXISTS `Locations` (
+		`id`	INTEGER,
+		`name`	TEXT,
+		`loc_latitude`	REAL,
+		`loc_longtitude`	REAL,
+		PRIMARY KEY(`id`)
 		);""")
 		self.db.commit()
 
@@ -47,8 +57,9 @@ class database(object):
 				REFERENCES Users(mobile)
 		);""")
 		self.db.commit()
+	# ===============================================================
 
-	#==================== USERS ====================
+	# ----------------------- user -----------------------------------
 	def addUser(self, _mobile, _pswd, _name, _type):
 		try:
 			self.cursor.execute(""" INSERT INTO Users(mobile, pswd, name, type)
@@ -77,9 +88,9 @@ class database(object):
 	def deleteUser(self, _mobile):
 		self.cursor.execute("DELETE FROM Users WHERE mobile='{}';".format(_mobile))
 		self.db.commit()
+	# =================================================================================
 
-
-	#==================== BIKES ====================
+	# --------------------- bikes -----------------------------------------------------
 	def addBike(self, _id, _location_id):
 		try:
 			self.cursor.execute(""" INSERT INTO Bikes(id, location_id, condition)
@@ -104,8 +115,9 @@ class database(object):
 	def changeBikeLocation (self, _id, _location_id):
 		self.cursor.execute("UPDATE Bikes SET location_id=? WHERE id=?;", (_location_id, _id))
 		self.db.commit()
+	# ========================================================================
 
-	#==================== LOCATIONS ====================
+	# --------------------------- Locations -----------------------------------
 	def addLocation(self, _id, _name):
 		try:
 			self.cursor.execute("INSERT INTO Locations (id,name) VALUES (?, ?);",
@@ -148,8 +160,6 @@ class database(object):
 	def getColumnsInDB(self, data):
 		try:
 			table, columns = data[0], data[1]
-			# print(data)
-			# print((" SELECT "+columns+" FROM "+table))
 			self.cursor.execute((" SELECT "+columns+" FROM "+table))
 			return self.cursor.fetchall()
 		except sql.OperationalError as e:

@@ -12,7 +12,14 @@ class bikeSharingServer(database):
         self.client_login = None
         self.client_mobile = None
 
-    def authenticateUser(self, data): # Command structure: ("mobile_number", "password")
+    # ------------- close user --------------
+    def closeUser(self):
+        print('[Server] %s left.' % self.client_mobile)
+        self.clientSocket.close()
+    # -------------------------------------------
+
+    # -------------- authenticate user ----------------
+    def authenticateUserCommand(self, data): # Command structure: ("mobile_number", "password")
         mobile, pswd = data[0], data[1]
         # self.clientSocket.sendall(b'verify')
         # self.client_login = self.clientSocket.recv(self.BUFSIZE)
@@ -32,7 +39,8 @@ class bikeSharingServer(database):
         # ------ go back to receiveCommand
         self.receiveCommand()
 
-    def registerUser(self, data): # Command structure: ("mobile_number", "password")
+    # -------------- register user -------------------------------------------------------
+    def registerUserCommand(self, data): # Command structure: ("mobile_number", "password")
         mobile, pswd = data[0], data[1]
         # self.clientSocket.sendall(b'REGISTER')
         # self.client_login = self.clientSocket.recv(self.BUFSIZE)
@@ -45,11 +53,15 @@ class bikeSharingServer(database):
         # ------ go back to receiveCommand
         self.receiveCommand()
 
-    def closeUser(self):
-        print('[Server] %s left.' % self.client_mobile)
-        self.clientSocket.close()
+    # --------------t the locations  -------------------
+    def getLocationsCommand(self, tupleRcvd):
+        records = self.getColumnsInDB(tupleRcvd)
+        self.clientSocket.sendall(bytes(str(records).encode('utf-8')))
+        self.receiveCommand()
 
-    # Packet Structure: ("COMMAND_NAME", (command specific fields))
+
+
+    # ------------- Packet Structure: ("COMMAND_NAME", (command specific fields)) ------------
     def receiveCommand(self):
         client_command = self.clientSocket.recv(self.BUFSIZE).decode('utf-8')
         print("[Server] Packet received:", client_command)
@@ -60,12 +72,12 @@ class bikeSharingServer(database):
         if command == '':
             self.closeUser()
         elif command == 'VERIFY_LOGIN': # Command structure: ("mobile_number", "password")
-            self.authenticateUser(tupleRcvd[1]) 
+            self.authenticateUserCommand(tupleRcvd[1])
         elif command == 'REGISTER':# Command structure: ("mobile_number", "password")
-            self.registerUser(tupleRcvd[1])
-        elif command == "GET_COLUMNS_IN_TABLE": # Command structure: ("Table_name", "column1, column2, column3, etc"))
-            records = self.getColumnsInDB(tupleRcvd[1])
-            self.clientSocket.sendall(bytes(str(records).encode('utf-8')))
+            self.registerUserCommand(tupleRcvd[1])
+        elif command == "GET_LOCATIONS": # Command structure: ("Table_name", "column1, column2, column3, etc"))
+            self.getLocationsCommand(tupleRcvd[1])
+
         # Deprecated
         # elif command == "GET_LOCATIONS":
         #     locations = self.getDB("Locations")
