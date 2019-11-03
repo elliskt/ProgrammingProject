@@ -2,6 +2,7 @@ from Client import *
 from tkinter import *
 from tkinter.font import Font
 from time import strftime
+import datetime
 import ast
 from ClientConnection import ClientConnection
 
@@ -250,7 +251,7 @@ class ClientInterface(ClientConnection):
         for i, bike in enumerate(bikes):
             current_bike_text = 'Bike-' + str(bike[0])
             btn = Button(self.window.interior, height=1, width=20, text=current_bike_text,
-                         command=lambda i=bike[0]: self.openlink(i))
+                         command=lambda b_id=bike[0]: self.openlink(b_id))
             btn.pack(padx=10, pady=5, side="top")
 
     def draw_operator_buttons(self, stationId):
@@ -362,9 +363,13 @@ class ClientInterface(ClientConnection):
         elif go_to == "timer_page":
             self.timer_page()
 
+    def open_reporter_sendError(self, popup, go_to,bike_id, user_id, location_id, error_type, date):
+        self.sendReport(bike_id, user_id, location_id, error_type, date)
+        # ---- go back to locations page --------
+        self.popup_release(popup, go_to)
+
     def open_reporter(self):
         popup = Toplevel(self.window)
-
         w = 300  # width for the Tk root
         h = 100  # height for the Tk root
         ws = self.window.winfo_vrootwidth()  # width of root window
@@ -377,19 +382,23 @@ class ClientInterface(ClientConnection):
 
         go_to = "locationsPage"
         # ----------------------------
-        hint = StringVar()
+        hint_reporter = StringVar(popup)
+        report_type = ["Tire pressure leaked", "Tire damaged", "Bike not working",
+                                      "Bike dirty", "Component missed", "Other"]
         selection_info = "Select a issue"
-        hint.set(selection_info)
-        endlocation_menu = OptionMenu(popup, hint, "Tire pressure leaked", "Tire damaged", "Bike not working",
-                                      "Bike dirty", "Component missed", "Other")
+        hint_reporter.set(selection_info)
+        endlocation_menu = OptionMenu(popup, hint_reporter, *report_type)
         endlocation_menu.pack()
         endlocation_menu.configure(font=self.my_font)
         # ---------------------------
+
         message_label = Label(popup, text="Your report will be submitted to our system.")
         message_label.pack(fill="y")
 
         confirm_btn = Button(popup, height=1, width=10, text="Confirm",
-                             command=lambda p=popup: self.popup_release(popup, go_to))
+                             command=lambda b_id=self.bike_id, u_id=self.username, l_id=self.start_location_id,
+                             e_type=hint_reporter.get(), d=datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S"):
+                             self.open_reporter_sendError(popup, go_to, b_id, u_id, l_id, e_type, d))
         confirm_btn.pack()
         popup.mainloop()
 
@@ -411,11 +420,9 @@ class ClientInterface(ClientConnection):
         pay_label.place(x=150, y=200, width=200, height=25)
         pay_label.configure(font=self.my_font)
         # dropdown for endloc
-        global hint
         hint = StringVar()
         selection_info = "Select ending location "
         hint.set(selection_info)
-        locatons = self.getLocations()
         endlocation_menu = OptionMenu(self.window, hint, "1-Partick", "2-Glasgow Uni", "3-Glasgow City Centre", "4-Buchanan Bus Station")
         endlocation_menu.place(x=160, y=300, width=250)
         endlocation_menu.configure(font=self.my_font)

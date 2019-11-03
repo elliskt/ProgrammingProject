@@ -56,3 +56,8 @@ class ClientConnection(object):
         self.clientSocket.send(bytes(str(command).encode('UTF-8')))
         payment_state = self.clientSocket.recv(BUFSIZE).decode('UTF-8')
         return payment_state
+
+    def sendReport(self, bike_id, user_id, location_id, error_type, date):
+        command = ("SEND_REPORT", (bike_id, user_id, location_id, error_type, date))
+        self.clientSocket.send(bytes(str(command).encode('UTF-8')))
+

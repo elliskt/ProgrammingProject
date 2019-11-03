@@ -1,5 +1,5 @@
 import sqlite3 as sql
-import numpy as np
+import datetime
 #import deprecated
 
 class database(object):
@@ -183,29 +183,9 @@ class database(object):
         else:
             return balance
 
-#=================== TESTING ===================
-# Uncomment and run file to repopulate DB
-    #=============== INITIAL DATA ================
-    # def addUsers(self):
-    # 	self.users = ['Mohammad', 'Razvan', 'Yihao', 'Ellis', 'Hafsah']
-    # 	for i in range(len(self.users)):
-    # 		self.addUser(i, i, self.users[i], 1)
-
-    # def addLocations(self):
-    # 	self.locations = ['UofG', 'Strathclyde', 'Caledonian']
-    # 	for i in range(len(self.locations)):
-    # 		self.addLocation(i, self.locations[i])
-
-    # def addBikes(self):
-    # 	for i in range(10):
-    # 		self.addBike(i, np.random.randint(0, 3))
-# if __name__ == '__main__':
-# 	db = database()
-# 	db.addUsers()
-# 	db.addLocations()
-# 	db.addBikes()
-# 	db.printDB("Users")
-# 	db.printDB("Locations")
-# 	db.printDB("Bikes")
-# db.close()
-
+    def writeReport(self, data):
+        # (bike_id, user_id, location_id, error_type, date)
+        self.cursor.execute("INSERT INTO Bike_report(bike_id, user, location_id, report_type, time) \
+                            VALUES({},'{}',{},'{}',{})".format(data[0], data[1], data[2], data[3], data[4]))
+        self.db.commit()
+        print("[Server] {} reported the Bike-{}.".format(data[1], data[0]))

@@ -72,6 +72,12 @@ class bikeSharingServer(database):
         self.clientSocket.sendall(bytes(str(pay_state).encode('utf-8')))
         self.receiveCommand()
 
+    # ------------ pay bill and record -----------------
+    def sendReportCommand(self, tupleRcvd):
+        # (bike_id, user_id, location_id, error_type, date)
+        self.writeReport(tupleRcvd)
+        self.receiveCommand()
+
     # ------------- Packet Structure: ("COMMAND_NAME", (command specific fields)) ------------
     def receiveCommand(self):
         client_command = self.clientSocket.recv(self.BUFSIZE).decode('utf-8')
@@ -92,6 +98,8 @@ class bikeSharingServer(database):
             self.getBikesCommand(tupleRcvd[1])
         elif command == "PAY_BILL":
             self.payBillCommand(tupleRcvd[1])
+        elif command == "SEND_REPORT":
+            self.sendReportCommand(tupleRcvd[1])
         # Deprecated
         # elif command == "GET_LOCATIONS":
         #     locations = self.getDB("Locations")
