@@ -1,5 +1,5 @@
 import sqlite3 as sql
-import datetime
+import numpy as np
 #import deprecated
 
 class database(object):
@@ -36,24 +36,31 @@ class database(object):
         # ----------- Create Locations(Bike stop location) table --------
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS `Locations` (
-        `id`	INTEGER,
-        `name`	TEXT,
-        `loc_latitude`	REAL,
-        `loc_longtitude`	REAL,
+        `id`    INTEGER,
+        `name`    TEXT,
+        `loc_latitude`    REAL,
+        `loc_longtitude`    REAL,
         PRIMARY KEY(`id`)
         );""")
         self.db.commit()
 
         self.cursor.execute(""" CREATE TABLE IF NOT EXISTS Log(
-            mobile		INTEGER,
-            bike_id		INTEGER,
-            cost		INTEGER,
-            condition	REAL,
-            start_time	TIME,
-            end_time	TIME,
+            id             INTEGER,
+            mobile        INTEGER,
+            bike_id        INTEGER,
+            cost        INTEGER,
+            condition    REAL,
+            duration    DATETIME,
+            start_location_id    INTEGER,
+            return_location_id    INTEGER,
+            PRIMARY KEY (id)
             FOREIGN KEY (bike_id) 
                 REFERENCES Bikes(id),
             FOREIGN KEY (mobile) 
+                REFERENCES Users(mobile)
+            FOREIGN KEY (start_location_id) 
+                REFERENCES Locations(id),
+            FOREIGN KEY (return_location_id) 
                 REFERENCES Users(mobile)
         );""")
         self.db.commit()
@@ -182,6 +189,9 @@ class database(object):
             return balance
         else:
             return balance
+
+    def recordLog(self,  id, mobile, bike_id, duration, bill, start_location_id, return_location_id):
+
 
     def writeReport(self, data):
         # (bike_id, user_id, location_id, error_type, date)
