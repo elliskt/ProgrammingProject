@@ -49,12 +49,7 @@ def locationsPage():
         index += 1
 
 def clientLogin(un, pw):
-    # ============ GUI should not allow username or passwords to include spaces===========
-    # login_package = '%s %s' % (un, pw)              # the user may sent space will hence error here
-    # print(type(login_package))
     clientSocket.send(bytes(('("VERIFY_LOGIN", ("{}", "{}"))').format(un, pw).encode('UTF-8')))
-    # clientSocket.recv(BUFSIZE)                      # receive the 'verify'
-    # clientSocket.send(bytes(login_package.encode('UTF-8')))
     login_state = clientSocket.recv(BUFSIZE)
     login_state = login_state.decode('UTF-8')
 
@@ -201,7 +196,6 @@ def timer(s_initial, time_label):
     time_label.after(1000, lambda: timer(s_initial, time_label) )
 
 def timer_page():
-    
     clear_window()
     
     title = Label(text = "Your trip has started", font = ('Helvetica', 18))
@@ -345,9 +339,7 @@ def openlink(i):
     l1.pack(fill = "y")
     l2 = Label(popup,text=i)
     l2.pack(fill = "y")
-    
     go_to = "open_reporter"
-    
     go_to2 = "timer_page"
     
     r = Button(popup, height = 1, width = 10 , text = "Report Bike", command = lambda p=popup: popup_release(popup, go_to))

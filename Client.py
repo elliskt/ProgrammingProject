@@ -1,5 +1,5 @@
 import socket
-
+import time
 # ----- client setup -----------
 BUFSIZE = 1024
 serverAddr = ('127.0.0.1', 65501)
@@ -13,11 +13,12 @@ def client_connect_server():
     try:
         clientSocket.connect(serverAddr)                        # try connect to server
         print("[Server] Connect successful.")
+
     except ConnectionRefusedError:
         print("Server error, please try again")
         exit(1)
 
-        
+
     # -------------------------------
 
 

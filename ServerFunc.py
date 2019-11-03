@@ -53,18 +53,29 @@ class bikeSharingServer(database):
         # ------ go back to receiveCommand
         self.receiveCommand()
 
-    # --------------t the locations  -------------------
+    # --------------get the locations  -------------------
     def getLocationsCommand(self, tupleRcvd):
         records = self.getColumnsInDB(tupleRcvd)
         self.clientSocket.sendall(bytes(str(records).encode('utf-8')))
         self.receiveCommand()
 
+    # ------------- get the bikes from Location ----------
+    def getBikesCommand(self, location_id):
+        bikes = self.getBikesInLocation(location_id)
+        self.clientSocket.sendall(bytes(str(bikes).encode('utf-8')))
+        self.receiveCommand()
 
+    # ------------ pay bill and record -----------------
+    def payBillCommand(self, tupleRcvd):
+        # (mobile, bike_id, duration, bill, start_location_id, return_location_id)
+        pay_state = self.payBill(tupleRcvd[0], tupleRcvd[3])
+        self.clientSocket.sendall(bytes(str(pay_state).encode('utf-8')))
+        self.receiveCommand()
 
     # ------------- Packet Structure: ("COMMAND_NAME", (command specific fields)) ------------
     def receiveCommand(self):
         client_command = self.clientSocket.recv(self.BUFSIZE).decode('utf-8')
-        print("[Server] Packet received:", client_command)
+        print("[Server] Package received:", client_command)
         tupleRcvd = ast.literal_eval(client_command)
         command = tupleRcvd[0]
         # command = command.decode('utf-8')
@@ -77,7 +88,10 @@ class bikeSharingServer(database):
             self.registerUserCommand(tupleRcvd[1])
         elif command == "GET_LOCATIONS": # Command structure: ("Table_name", "column1, column2, column3, etc"))
             self.getLocationsCommand(tupleRcvd[1])
-
+        elif command == "GET_BIKES":
+            self.getBikesCommand(tupleRcvd[1])
+        elif command == "PAY_BILL":
+            self.payBillCommand(tupleRcvd[1])
         # Deprecated
         # elif command == "GET_LOCATIONS":
         #     locations = self.getDB("Locations")
