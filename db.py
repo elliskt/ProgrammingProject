@@ -12,22 +12,22 @@ class database(object):
 
         #User Types: Client = 1, Manager = 2, Operator = 3
         self.cursor.execute(""" CREATE TABLE IF NOT EXISTS Users(
-            mobile	TEXT PRIMARY KEY,
-            pswd	TEXT NOT NULL,
-            name	TEXT,
-            type	INTEGER NOT NULL);""")
+            mobile    TEXT PRIMARY KEY,
+            pswd    TEXT NOT NULL,
+            name    TEXT,
+            type    INTEGER NOT NULL);""")
         self.db.commit()
 
         # ----------- Create Bikes table --------------
         self.cursor.execute(""" 
         CREATE TABLE IF NOT EXISTS `Bikes`(
-        `id`	INTEGER,
-        `location_id`	INTEGER,
-        `in_use`	BOOLEAN,
-        `loc_latitude`	REAL,
-        `loc_longtitude`	REAL,
-        `time_from`	DATETIME,
-        `condition`	BOOLEAN,
+        `id`    INTEGER,
+        `location_id`    INTEGER,
+        `in_use`    BOOLEAN,
+        `loc_latitude`    REAL,
+        `loc_longtitude`    REAL,
+        `time_from`    DATETIME,
+        `condition`    BOOLEAN,
         PRIMARY KEY(`id`),
         FOREIGN KEY(`location_id`) REFERENCES `Locations`(`id`)
         );""")
@@ -36,24 +36,31 @@ class database(object):
         # ----------- Create Locations(Bike stop location) table --------
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS `Locations` (
-        `id`	INTEGER,
-        `name`	TEXT,
-        `loc_latitude`	REAL,
-        `loc_longtitude`	REAL,
+        `id`    INTEGER,
+        `name`    TEXT,
+        `loc_latitude`    REAL,
+        `loc_longtitude`    REAL,
         PRIMARY KEY(`id`)
         );""")
         self.db.commit()
 
         self.cursor.execute(""" CREATE TABLE IF NOT EXISTS Log(
-            mobile		INTEGER,
-            bike_id		INTEGER,
-            cost		INTEGER,
-            condition	REAL,
-            start_time	TIME,
-            end_time	TIME,
+            id             INTEGER,
+            mobile        INTEGER,
+            bike_id        INTEGER,
+            cost        INTEGER,
+            condition    REAL,
+            duration    DATETIME,
+            start_location_id    INTEGER,
+            return_location_id    INTEGER,
+            PRIMARY KEY (id)
             FOREIGN KEY (bike_id) 
                 REFERENCES Bikes(id),
             FOREIGN KEY (mobile) 
+                REFERENCES Users(mobile)
+            FOREIGN KEY (start_location_id) 
+                REFERENCES Locations(id),
+            FOREIGN KEY (return_location_id) 
                 REFERENCES Users(mobile)
         );""")
         self.db.commit()
@@ -150,12 +157,12 @@ class database(object):
 
     # Deprecated
     # def getBikesInLocation(self, _location_id):
-    # 	try:
-    # 		self.cursor.execute(""" SELECT id FROM Bikes
-    # 			WHERE location_id = {}""".format(_location_id))
-    # 		return self.cursor.fetchall()
-    # 	except sql.OperationalError as e:
-    # 		print("Location does not exist!")
+    #     try:
+    #         self.cursor.execute(""" SELECT id FROM Bikes
+    #             WHERE location_id = {}""".format(_location_id))
+    #         return self.cursor.fetchall()
+    #     except sql.OperationalError as e:
+    #         print("Location does not exist!")
 
     def getColumnsInDB(self, data):
         try:
@@ -178,34 +185,38 @@ class database(object):
         # ------- update balance ---
         self.cursor.execute(("UPDATE Users SET balance={} WHERE mobile='{}'".format(balance, mobile)))
         self.db.commit()
+        
         if balance <= 0:
             return balance
         else:
             return balance
+    
+    def recordLog(self,  id, mobile, bike_id, duration, bill, start_location_id, return_location_id):
+        
 
 #=================== TESTING ===================
 # Uncomment and run file to repopulate DB
     #=============== INITIAL DATA ================
     # def addUsers(self):
-    # 	self.users = ['Mohammad', 'Razvan', 'Yihao', 'Ellis', 'Hafsah']
-    # 	for i in range(len(self.users)):
-    # 		self.addUser(i, i, self.users[i], 1)
+    #     self.users = ['Mohammad', 'Razvan', 'Yihao', 'Ellis', 'Hafsah']
+    #     for i in range(len(self.users)):
+    #         self.addUser(i, i, self.users[i], 1)
 
     # def addLocations(self):
-    # 	self.locations = ['UofG', 'Strathclyde', 'Caledonian']
-    # 	for i in range(len(self.locations)):
-    # 		self.addLocation(i, self.locations[i])
+    #     self.locations = ['UofG', 'Strathclyde', 'Caledonian']
+    #     for i in range(len(self.locations)):
+    #         self.addLocation(i, self.locations[i])
 
     # def addBikes(self):
-    # 	for i in range(10):
-    # 		self.addBike(i, np.random.randint(0, 3))
+    #     for i in range(10):
+    #         self.addBike(i, np.random.randint(0, 3))
 # if __name__ == '__main__':
-# 	db = database()
-# 	db.addUsers()
-# 	db.addLocations()
-# 	db.addBikes()
-# 	db.printDB("Users")
-# 	db.printDB("Locations")
-# 	db.printDB("Bikes")
+#     db = database()
+#     db.addUsers()
+#     db.addLocations()
+#     db.addBikes()
+#     db.printDB("Users")
+#     db.printDB("Locations")
+#     db.printDB("Bikes")
 # db.close()
 
