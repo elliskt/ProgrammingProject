@@ -8,6 +8,7 @@ import datetime
 import ast
 from matplotlib.figure import Figure
 from ClientConnection import ClientConnection
+import threading
 
 
 class ClientInterface(ClientConnection):
@@ -307,9 +308,16 @@ class ClientInterface(ClientConnection):
 
         r = Button(popup, height=1, width=10, text="Report Bike", command=lambda p=popup: self.popup_release(popup, go_to))
         r.pack(side="left", padx=30)
-        n = Button(popup, height=1, width=10, text="Confirm", command=lambda p=popup: self.popup_release(popup, go_to2))
+        n = Button(popup, height=1, width=10, text="Confirm", command=lambda bid=bike_id: self.confirmBike(popup, go_to2, bid))
         n.pack(side="right", padx=15)
         popup.mainloop()
+
+    def confirmBike(self, popup, go_to2, bike_id):
+        self.bike_id = bike_id
+        self.rentBike(bike_id, datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S"))
+        thread_sendloc = threading.Thread(target=self.sendLocation, args=(bike_id, ))
+        thread_sendloc.start()
+        self.popup_release(popup, go_to2)
 
     def repair_bike_popup(self, i):
         popup = Toplevel(self.window)
@@ -409,6 +417,7 @@ class ClientInterface(ClientConnection):
         confirm_btn.pack()
         popup.mainloop()
 
+
     # billing screen
     def trip_summary_page(self, hours, minutes, sec):
         self.clear_window()
@@ -455,7 +464,8 @@ class ClientInterface(ClientConnection):
         self.clear_window()
         # (mobile,bike_id,duration,bill, start_location_id, return_location_id)
         payment_state = self.payBill(self.username, self.bike_id, self.duration, self.payment, self.start_location_id, self.return_location_id)
-        payment_state = float(payment_state)
+        self.returnBike(self.bike_id, self.return_location_id)
+        payment_state = round(float(payment_state), 2)
         if payment_state > 0:
             statment_label1 = Label(text="Payment Successfull.")
         else:

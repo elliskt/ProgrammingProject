@@ -1,6 +1,7 @@
 import socket
 from ClientInterface import *
-
+import geocoder
+import threading
 
 class ClientConnection(object):
     def __init__(self):
@@ -61,3 +62,17 @@ class ClientConnection(object):
         command = ("SEND_REPORT", (bike_id, user_id, location_id, error_type, date))
         self.clientSocket.send(bytes(str(command).encode('UTF-8')))
 
+    def rentBike(self, bike, date):
+        command = ("RENT_BIKE", (bike, date, ))
+        self.clientSocket.send(bytes(str(command).encode('UTF-8')))
+
+    def sendLocation(self, bid):
+        current_loc = geocoder.ip('me')
+        lat = current_loc.latlng[0]
+        lng = current_loc.latlng[1]
+        command = ("SEND_LOCATION", (bid, lat, lng))
+        self.clientSocket.send(bytes(str(command).encode('UTF-8')))
+
+    def returnBike(self, bid, return_loc_id):
+        command = ("RETURN_BIKE_RESET", (bid, return_loc_id))
+        self.clientSocket.send(bytes(str(command).encode('UTF-8')))

@@ -92,6 +92,18 @@ class bikeSharingServer(database):
         self.fixBike(tupleRcvd)
         self.receiveCommand()
 
+    def rentBikeCommand(self, tupleRcvd):
+        self.rentBike(tupleRcvd)
+        self.receiveCommand()
+
+    def sendLocationCommand(self, tupleRcvd):
+        self.sendLocation(tupleRcvd)
+        self.receiveCommand()
+
+    def returnBikeResetCommand(self, tupleRcvd):
+        self.returnBikeReset(tupleRcvd)
+        self.receiveCommand()
+
     # ------------- Packet Structure: ("COMMAND_NAME", (command specific fields)) ------------
     def receiveCommand(self):
         client_command = self.clientSocket.recv(self.BUFSIZE).decode('utf-8')
@@ -119,3 +131,9 @@ class bikeSharingServer(database):
             self.moveBikeCommand(tupleRcvd[1])
         elif command == "FIX_BIKE":
             self.fixBikeCommand(tupleRcvd[1])
+        elif command == "RENT_BIKE":
+            self.rentBikeCommand(tupleRcvd[1])
+        elif command =="SEND_LOCATION":
+            self.sendLocationCommand(tupleRcvd[1])
+        elif command =="RETURN_BIKE_RESET":
+            self.returnBikeResetCommand(tupleRcvd[1])

@@ -57,7 +57,7 @@ def getBikes():
     bikes = ast.literal_eval(bikes)
     return bikes
 
-def moveBike(bike_id, location_id):
+def moveBike(bike_id, location_id, num):
     command = ("MOVE_BIKE",(bike_id, location_id))
     clientSocket.send(bytes(str(command).encode('UTF-8')))
 
@@ -82,12 +82,12 @@ def updateButton(window):
             endlocation_menu = tk.OptionMenu(window, ddlist[row], *locations_id)
             endlocation_menu.grid(row=row+2, column=7)
             # -------------
-            b = tk.Button(text='Confirm', width=15, height=1, borderwidth=2, relief="raised",
-                          command=lambda id=bikes[row][0], dd= ddlist[row]:moveBike(id, dd.get().split('-')[0]))
+            b = tk.Button(text='Confirm', width=18, height=1, borderwidth=2, relief="raised",
+                          command=lambda id=bikes[row][0], dd= ddlist[row], rownum=row:moveBike(id, dd.get().split('-')[0],rownum))
             b.grid(row=row+2, column = 8)
             confirmbuttonlist.append(b)
             # ---------
-            f = tk.Button(text='Fix Bike', width=15, height=1, borderwidth=2, relief="raised",
+            f = tk.Button(text='Fix Bike', width=18, height=1, borderwidth=2, relief="raised",
                           command=lambda id=bikes[row][0]: fixBike(id))
             f.grid(row=row + 2, column=9)
             fixbuttonlist.append(f)
@@ -96,10 +96,10 @@ def updateButton(window):
         for column in range(len(bikes[row])):
             cur_text = str(bikes[row][column]) if str(bikes[row][column]) != 'None' else '-'
             if column == 1:
-                cur_text = locations_id_abb[int(bikes[row][column])-1]
+                cur_text ='-' if str(bikes[row][column]) == 'None' else locations_id_abb[int(bikes[row][column])-1]
             if FIRST:
                 label = tk.Label(text=cur_text,
-                        width=15, height=2, borderwidth=2, relief="sunken", )
+                        width=18, height=2, borderwidth=2, relief="sunken", )
                 label.grid(row=row + 2, column=column)
                 rowlist.append(label)
             else:
@@ -124,16 +124,16 @@ def show_status_page():
     bike_window.title('Operator-Bikes Staus')
     btn = tk.Button(bike_window, width=10, height=2, text='Update', command=lambda: updateButton(bike_window))
     btn.grid(row=0, column=0)
-    time_label = tk.Label(text='Update in {}s'.format(TIMER), width=15, height=2, borderwidth=2, relief="solid", )
+    time_label = tk.Label(text='Update in {}s'.format(TIMER), width=18, height=2, borderwidth=2, relief="solid", )
     time_label.grid(row=0, column=1)
-    tk.Label(text='BikeID', width=15, height=2, borderwidth=2, relief="sunken", ).grid(row=1, column=0)
-    tk.Label(text='BikeStop', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=1)
-    tk.Label(text='In use', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=2)
-    tk.Label(text='Loc_latitute', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=3)
-    tk.Label(text='Loc_longtitute', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=4)
-    tk.Label(text='Rent time from', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=5)
-    tk.Label(text='Reported', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=6)
-    tk.Label(text='Move to', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=7)
+    tk.Label(text='BikeID', width=18, height=2, borderwidth=2, relief="sunken", ).grid(row=1, column=0)
+    tk.Label(text='BikeStop', width=18, height=2, borderwidth=2, relief="sunken").grid(row=1, column=1)
+    tk.Label(text='In use', width=18, height=2, borderwidth=2, relief="sunken").grid(row=1, column=2)
+    tk.Label(text='Loc_latitute', width=18, height=2, borderwidth=2, relief="sunken").grid(row=1, column=3)
+    tk.Label(text='Loc_longtitute', width=18, height=2, borderwidth=2, relief="sunken").grid(row=1, column=4)
+    tk.Label(text='Rent time from', width=18, height=2, borderwidth=2, relief="sunken").grid(row=1, column=5)
+    tk.Label(text='Reported', width=18, height=2, borderwidth=2, relief="sunken").grid(row=1, column=6)
+    tk.Label(text='Move to', width=18, height=2, borderwidth=2, relief="sunken").grid(row=1, column=7)
     timer = Thread(target=timer_update, args=(time_label, ))
     timer.start()
     bike_window.mainloop()

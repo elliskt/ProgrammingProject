@@ -222,3 +222,36 @@ class database(object):
         self.cursor.execute(
             "UPDATE Bikes SET reported='{}' WHERE id={}".format('False', str(data[0])))
         self.db.commit()
+
+    def rentBike(self, data):
+        self.cursor.execute(
+            "UPDATE Bikes SET in_use='True' WHERE id={}".format(str(data[0])))
+        self.cursor.execute(
+            "UPDATE Bikes SET time_from='{}' WHERE id={}".format(str(data[1]), str(data[0])))
+        self.cursor.execute(
+            "UPDATE Bikes SET location_id=NULL WHERE id={}".format(str(data[0])))
+        self.db.commit()
+
+    def sendLocation(self,data):
+        self.cursor.execute(
+            "UPDATE Bikes SET loc_latitude={} WHERE id={}".format(str(data[1]), str(data[0])))
+        self.cursor.execute(
+            "UPDATE Bikes SET loc_longtitude={} WHERE id={}".format(str(data[2]), str(data[0])))
+        self.db.commit()
+
+    def returnBikeReset(self, data):
+        print("[Server] Bike-{} has been returned.".format(data[0]))
+        self.cursor.execute(
+            "UPDATE Bikes SET time_from=NULL WHERE id={}".format(str(data[0])))
+        self.cursor.execute(
+            "UPDATE Bikes SET loc_latitude=NULL WHERE id={}".format(str(data[0])))
+        self.cursor.execute(
+            "UPDATE Bikes SET loc_longtitude=NULL WHERE id={}".format(str(data[0])))
+        self.cursor.execute(
+            "UPDATE Bikes SET in_use='False' WHERE id={}".format(str(data[0])))
+        self.cursor.execute(
+            "UPDATE Bikes SET location_id={} WHERE id={}".format(str(data[1]), str(data[0])))
+        self.db.commit()
+
+
+
