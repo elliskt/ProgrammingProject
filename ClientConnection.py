@@ -51,8 +51,8 @@ class ClientConnection(object):
         bikes = ast.literal_eval(bikes)
         return bikes
 
-    def payBill(self, id, mobile, bike_id, duration, bill, start_location_id, return_location_id):
-        command = ("PAY_BILL", (id, mobile,bike_id,duration,bill, start_location_id, return_location_id))
+    def payBill(self, mobile, bike_id, duration, bill, start_location_id, return_location_id):
+        command = ("PAY_BILL", (mobile,bike_id,duration,bill, start_location_id, return_location_id))
         self.clientSocket.send(bytes(str(command).encode('UTF-8')))
         payment_state = self.clientSocket.recv(BUFSIZE).decode('UTF-8')
         return payment_state

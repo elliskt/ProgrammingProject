@@ -33,6 +33,17 @@ class database(object):
         );""")
         self.db.commit()
 
+        # -------   Create bikes report -------------------------
+        self.cursor.execute(""" 
+        CREATE TABLE IF NOT EXISTS `Bikes_report`(
+        bike_id TEXT, 
+        user_id TEXT, 
+        location_id TEXT, 
+        error_type TEXT, 
+        date TEXT
+        );""")
+        self.db.commit()
+
         # ----------- Create Locations(Bike stop location) table --------
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS `Locations` (
@@ -173,29 +184,32 @@ class database(object):
             return e
 
     def getBikesInLocation(self, location_id):
-        print(location_id)
-        self.cursor.execute((" SELECT * FROM Bikes WHERE location_id = " + str(location_id)))
+        self.cursor.execute((" SELECT * FROM Bikes WHERE location_id={} ".format(str(location_id))))
         return self.cursor.fetchall()
 
     def payBill(self, mobile, bill):
         # -------- get balance ---
-        self.cursor.execute(("SELECT * FROM Users WHERE mobile = '{}'".format(str(mobile))))
+        self.cursor.execute(("SELECT * FROM Users WHERE mobile = '{}'".format(mobile)))
         balance = self.cursor.fetchall()[0][2]
         balance -= bill
         # ------- update balance ---
         self.cursor.execute(("UPDATE Users SET balance={} WHERE mobile='{}'".format(balance, mobile)))
         self.db.commit()
-        if balance <= 0:
-            return balance
-        else:
-            return balance
+        print("[Server] {} paid £ {}.".format(mobile, bill))
+        return balance
 
-    def recordLog(self,  id, mobile, bike_id, duration, bill, start_location_id, return_location_id):
+    # def recordLog(self,  id, mobile, bike_id, duration, bill, start_location_id, return_location_id):
 
 
     def writeReport(self, data):
         # (bike_id, user_id, location_id, error_type, date)
-        self.cursor.execute("INSERT INTO Bike_report(bike_id, user, location_id, report_type, time) \
-                            VALUES({},'{}',{},'{}',{})".format(data[0], data[1], data[2], data[3], data[4]))
+        self.cursor.execute("INSERT INTO Bikes_report(bike_id, user_id, location_id, error_type, date) VALUES(?,?,?,?,?)",
+                            (data[0], data[1], data[2], data[3], data[4]))
+        self.cursor.execute("UPDATE Bikes SET reported='{}' WHERE id={}".format(str('True'), str(data[0])))
         self.db.commit()
         print("[Server] {} reported the Bike-{}.".format(data[1], data[0]))
+        print("[Server] Bike-{} reported status ---> True.".format(data[0]))
+
+    def getAllBikes(self):
+        self.cursor.execute("SELECT * FROM Bikes")
+        return self.cursor.fetchall()

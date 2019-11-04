@@ -14,6 +14,7 @@ class ClientInterface(ClientConnection):
     def __init__(self):
         super().__init__()
         self.window = Tk()
+        self.window.title("Bike Sharing System")
         self.username = None
         self.bike_id = None
         self.duration = None
@@ -253,8 +254,11 @@ class ClientInterface(ClientConnection):
         # ------- bikes button -------------------
         for i, bike in enumerate(bikes):
             current_bike_text = 'Bike-' + str(bike[0])
-            btn = Button(self.window.interior, height=1, width=20, text=current_bike_text,
+            reported_status = bike[6]
+            btn = Button(self.window.interior, height=1, width=20, text=current_bike_text, bg='#61ED6C',
                          command=lambda b_id=bike[0]: self.openlink(b_id))
+            if reported_status == 'True':
+                btn.config(state='disabled', bg='#EA5C5C')
             btn.pack(padx=10, pady=5, side="top")
 
     def draw_operator_buttons(self, stationId):
@@ -400,8 +404,8 @@ class ClientInterface(ClientConnection):
 
         confirm_btn = Button(popup, height=1, width=10, text="Confirm",
                              command=lambda b_id=self.bike_id, u_id=self.username, l_id=self.start_location_id,
-                             e_type=hint_reporter.get(), d=datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S"):
-                             self.open_reporter_sendError(popup, go_to, b_id, u_id, l_id, e_type, d))
+                             d=datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S"):
+                             self.open_reporter_sendError(popup, go_to, b_id, u_id, l_id, hint_reporter.get(), d))
         confirm_btn.pack()
         popup.mainloop()
 
@@ -412,8 +416,10 @@ class ClientInterface(ClientConnection):
         tripend_label.place(x=180, y=30)
         tripend_label.configure(font=self.title_font)
         # for displaying end time / trip duration
+        time_label = Label(text="", font=('Helvetica', 48), fg='red')
         endtime_label = Label(
-            text="Duration: " + str(hours) + " : " + str(minutes) + " : " + str(sec) + "")  # (textvariable=end_loc)
+            text="Duration: " + str(hours) + " : " + str(minutes) + " : " + str(sec) + "",
+            font=('Helvetica', 48), fg='red')  # (textvariable=end_loc)
         endtime_label.place(x=150, y=100, width=230, height=50)
         endtime_label.configure(font=self.my_font)
         # payment
@@ -469,94 +475,94 @@ class ClientInterface(ClientConnection):
         report_button.place(x=100, y=350, width=120, height=30)
         report_button.configure(font=self.my_font)
         
-        
-    def manager_page():
-    
-        datatype = [
-                "Rental activities",
-                "Rents per station",
-                "Broken Bike per station"
-                ]
-          
-    
-        Chart_Type = [
-                "Bar Chart",
-                "Line Chart",
-                "Pie Chart"
-                ]
-    
-        varx = tk.StringVar(window)
-        varx.set(datatype[0])
-      
-        varchart = tk.StringVar(window)
-        varchart.set(Chart_Type[0])
-    
-        xaxis = tk.OptionMenu(window,varx,*datatype)
-        x = tk.Label(text="Data")
-        x.grid(row=0,column=0,padx = 90)
-        xaxis.grid(row=1,column=0)
-        
-        chartType = tk.OptionMenu(window,varchart,*Chart_Type)
-        chart = tk.Label(text="Chart Types")
-        chart.grid(row=0,column=2,padx = 90)
-        chartType.grid(row=1,column=2)
-        
-        plot = tk.Button(window, height = 1, width = 5,text = "Draw",command=lambda: draw(varchart.get(),varx.get()))
-        plot.grid(row=2,column=1,pady = 40)
-    
-    def draw(chartType,datatype):
-        
-        if chartType == "Line Chart" :
-            if datatype =="Rental activities":
-                LineChart(["St1","St2","St3"],[1,2,3])
-            elif datatype =="Rents per station":
-                LineChart(["St1","St2","St3"],[135,346,523])
-            elif datatype =="Weekly rental report":
-                LineChart(["St1","St2","St3"],[3,2,1])
-            else:
-                print("Some bullshit")
-                
-        elif chartType == "Bar Chart":
-            if datatype =="Rental activities":
-                BarChart(["St1","St2","St3"],[1,2,3],False)
-            elif datatype =="Rents per station":
-                BarChart(["St1","St2","St3"],[135,346,523],False)
-            elif datatype =="Weekly rental report":
-                BarChart(["St1","St2","St3"],[3,2,1],True)
-            
-        elif chartType  == "Pie Chart":
-            if datatype =="Rental activities":
-                PieChart(["St1","St2","St3"],[1,2,3])
-            elif datatype =="Rents per station":
-                PieChart(["St1","St2","St3"],[135,346,523])
-            elif datatype =="Weekly rental report":
-                PieChart(["St1","St2","St3"],[3,2,1])
-        else:
-            print("you picked the wrong chart fool!")
-    
-    def LineChart(datasetx,datasety):
-        
-        fig = Figure(figsize=(5,5))
-        a = fig.add_subplot(111)
-        a.plot(datasetx,datasety)
-        canvas = FigureCanvasTkAgg(fig,master=window)
-        canvas.draw()
-        canvas.get_tk_widget().grid(row=3,columnspan=3)
-    
-    def BarChart(datasetx,datasety,stacked):
-        
-        fig = Figure(figsize=(5,5))
-        a = fig.add_subplot(111)
-        a.bar(datasetx,datasety)
-        canvas = FigureCanvasTkAgg(fig,master=window)
-        canvas.draw()
-        canvas.get_tk_widget().grid(row=3,columnspan=3)
-    
-    def PieChart(datasetx,datasety):
-        
-        fig = Figure(figsize=(5,5))
-        a = fig.add_subplot(111)
-        a.pie(datasety,labels=datasetx)
-        canvas = FigureCanvasTkAgg(fig,master=window)
-        canvas.draw()
-        canvas.get_tk_widget().grid(row=3,columnspan=3)
+    #
+    # def manager_page():
+    #
+    #     datatype = [
+    #             "Rental activities",
+    #             "Rents per station",
+    #             "Broken Bike per station"
+    #             ]
+    #
+    #
+    #     Chart_Type = [
+    #             "Bar Chart",
+    #             "Line Chart",
+    #             "Pie Chart"
+    #             ]
+    #
+    #     varx = tk.StringVar(window)
+    #     varx.set(datatype[0])
+    #
+    #     varchart = tk.StringVar(window)
+    #     varchart.set(Chart_Type[0])
+    #
+    #     xaxis = tk.OptionMenu(window,varx,*datatype)
+    #     x = tk.Label(text="Data")
+    #     x.grid(row=0,column=0,padx = 90)
+    #     xaxis.grid(row=1,column=0)
+    #
+    #     chartType = tk.OptionMenu(window,varchart,*Chart_Type)
+    #     chart = tk.Label(text="Chart Types")
+    #     chart.grid(row=0,column=2,padx = 90)
+    #     chartType.grid(row=1,column=2)
+    #
+    #     plot = tk.Button(window, height = 1, width = 5,text = "Draw",command=lambda: draw(varchart.get(),varx.get()))
+    #     plot.grid(row=2,column=1,pady = 40)
+    #
+    # def draw(chartType,datatype):
+    #
+    #     if chartType == "Line Chart" :
+    #         if datatype =="Rental activities":
+    #             LineChart(["St1","St2","St3"],[1,2,3])
+    #         elif datatype =="Rents per station":
+    #             LineChart(["St1","St2","St3"],[135,346,523])
+    #         elif datatype =="Weekly rental report":
+    #             LineChart(["St1","St2","St3"],[3,2,1])
+    #         else:
+    #             print("Some bullshit")
+    #
+    #     elif chartType == "Bar Chart":
+    #         if datatype =="Rental activities":
+    #             BarChart(["St1","St2","St3"],[1,2,3],False)
+    #         elif datatype =="Rents per station":
+    #             BarChart(["St1","St2","St3"],[135,346,523],False)
+    #         elif datatype =="Weekly rental report":
+    #             BarChart(["St1","St2","St3"],[3,2,1],True)
+    #
+    #     elif chartType  == "Pie Chart":
+    #         if datatype =="Rental activities":
+    #             PieChart(["St1","St2","St3"],[1,2,3])
+    #         elif datatype =="Rents per station":
+    #             PieChart(["St1","St2","St3"],[135,346,523])
+    #         elif datatype =="Weekly rental report":
+    #             PieChart(["St1","St2","St3"],[3,2,1])
+    #     else:
+    #         print("you picked the wrong chart fool!")
+    #
+    # def LineChart(datasetx,datasety):
+    #
+    #     fig = Figure(figsize=(5,5))
+    #     a = fig.add_subplot(111)
+    #     a.plot(datasetx,datasety)
+    #     canvas = FigureCanvasTkAgg(fig,master=window)
+    #     canvas.draw()
+    #     canvas.get_tk_widget().grid(row=3,columnspan=3)
+    #
+    # def BarChart(datasetx,datasety,stacked):
+    #
+    #     fig = Figure(figsize=(5,5))
+    #     a = fig.add_subplot(111)
+    #     a.bar(datasetx,datasety)
+    #     canvas = FigureCanvasTkAgg(fig,master=window)
+    #     canvas.draw()
+    #     canvas.get_tk_widget().grid(row=3,columnspan=3)
+    #
+    # def PieChart(datasetx,datasety):
+    #
+    #     fig = Figure(figsize=(5,5))
+    #     a = fig.add_subplot(111)
+    #     a.pie(datasety,labels=datasetx)
+    #     canvas = FigureCanvasTkAgg(fig,master=window)
+    #     canvas.draw()
+    #     canvas.get_tk_widget().grid(row=3,columnspan=3)

@@ -42,12 +42,8 @@ class bikeSharingServer(database):
     # -------------- register user -------------------------------------------------------
     def registerUserCommand(self, data): # Command structure: ("mobile_number", "password")
         mobile, pswd = data[0], data[1]
-        # self.clientSocket.sendall(b'REGISTER')
-        # self.client_login = self.clientSocket.recv(self.BUFSIZE)
-        # self.client_login = self.client_login.decode('utf-8')
-        # mobile, pswd = self.client_login.split(' ')
-        print('[Server] Username: ', mobile)
-        print('[Server] Password: ', pswd)
+        # print('[Server] Username: ', mobile)
+        # print('[Server] Password: ', pswd)
         reg_status = self.addUser(str(mobile), pswd, "Mohammad Alharbi", 1)
         self.clientSocket.sendall(bytes(reg_status.encode('utf-8')))        # result of register attempt
         # ------ go back to receiveCommand
@@ -78,6 +74,12 @@ class bikeSharingServer(database):
         self.writeReport(tupleRcvd)
         self.receiveCommand()
 
+    # ------------- get all bikes ----------------------
+    def getAllBikesCommand(self):
+        records = self.getAllBikes()
+        self.clientSocket.sendall(bytes(str(records).encode('utf-8')))
+        self.receiveCommand()
+
     # ------------- Packet Structure: ("COMMAND_NAME", (command specific fields)) ------------
     def receiveCommand(self):
         client_command = self.clientSocket.recv(self.BUFSIZE).decode('utf-8')
@@ -85,14 +87,13 @@ class bikeSharingServer(database):
         tupleRcvd = ast.literal_eval(client_command)
         command = tupleRcvd[0]
         # command = command.decode('utf-8')
-        print("[Server] Received command:", command)
         if command == '':
             self.closeUser()
-        elif command == 'VERIFY_LOGIN': # Command structure: ("mobile_number", "password")
+        elif command == 'VERIFY_LOGIN':     # Command structure: ("mobile_number", "password")
             self.authenticateUserCommand(tupleRcvd[1])
-        elif command == 'REGISTER':# Command structure: ("mobile_number", "password")
+        elif command == 'REGISTER':         # Command structure: ("mobile_number", "password")
             self.registerUserCommand(tupleRcvd[1])
-        elif command == "GET_LOCATIONS": # Command structure: ("Table_name", "column1, column2, column3, etc"))
+        elif command == "GET_LOCATIONS":    # Command structure: ("Table_name", "column1, column2, column3, etc"))
             self.getLocationsCommand(tupleRcvd[1])
         elif command == "GET_BIKES":
             self.getBikesCommand(tupleRcvd[1])
@@ -100,8 +101,5 @@ class bikeSharingServer(database):
             self.payBillCommand(tupleRcvd[1])
         elif command == "SEND_REPORT":
             self.sendReportCommand(tupleRcvd[1])
-        # Deprecated
-        # elif command == "GET_LOCATIONS":
-        #     locations = self.getDB("Locations")
-        #     self.clientSocket.sendall(bytes(str(locations).encode('utf-8')))
-
+        elif command == "GET_ALL_BIKES":
+            self.getAllBikesCommand()
