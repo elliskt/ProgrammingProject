@@ -1,4 +1,5 @@
 from db import *
+from threading import Thread
 import json
 import ast
 
@@ -14,8 +15,9 @@ class bikeSharingServer(database):
 
     # ------------- close user --------------
     def closeUser(self):
-        print('[Server] %s left.' % self.client_mobile)
+        print('[Server] %s left.' % (self.client_mobile if self.client_mobile is not None else 'Admin'))
         self.clientSocket.close()
+        exit(1)
     # -------------------------------------------
 
     # -------------- authenticate user ----------------
@@ -80,16 +82,26 @@ class bikeSharingServer(database):
         self.clientSocket.sendall(bytes(str(records).encode('utf-8')))
         self.receiveCommand()
 
+    # ----- move bike ----
+    def moveBikeCommand(self, tupleRcvd):
+        self.moveBike(tupleRcvd)
+        self.receiveCommand()
+
+    # ------ fix bike -----
+    def fixBikeCommand(self, tupleRcvd):
+        self.fixBike(tupleRcvd)
+        self.receiveCommand()
+
     # ------------- Packet Structure: ("COMMAND_NAME", (command specific fields)) ------------
     def receiveCommand(self):
         client_command = self.clientSocket.recv(self.BUFSIZE).decode('utf-8')
-        print("[Server] Package received:", client_command)
-        tupleRcvd = ast.literal_eval(client_command)
-        command = tupleRcvd[0]
-        # command = command.decode('utf-8')
-        if command == '':
+        if client_command == '':
             self.closeUser()
-        elif command == 'VERIFY_LOGIN':     # Command structure: ("mobile_number", "password")
+        else:
+            print("[Server] Package received:", client_command)
+            tupleRcvd = ast.literal_eval(client_command)
+            command = tupleRcvd[0]
+        if command == 'VERIFY_LOGIN':     # Command structure: ("mobile_number", "password")
             self.authenticateUserCommand(tupleRcvd[1])
         elif command == 'REGISTER':         # Command structure: ("mobile_number", "password")
             self.registerUserCommand(tupleRcvd[1])
@@ -103,3 +115,7 @@ class bikeSharingServer(database):
             self.sendReportCommand(tupleRcvd[1])
         elif command == "GET_ALL_BIKES":
             self.getAllBikesCommand()
+        elif command == "MOVE_BIKE":
+            self.moveBikeCommand(tupleRcvd[1])
+        elif command == "FIX_BIKE":
+            self.fixBikeCommand(tupleRcvd[1])

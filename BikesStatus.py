@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
 import ast
 import tkinter as tk
+from tkinter.font import Font
 import socket
 import time
 from threading import Thread
 
 FIRST = True
+bike_window = None
 LABELSLIST = []
 BUFSIZE = 1024
 serverAddr = ('127.0.0.1', 65501)
 clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-locations = ["Partick", "Glasgow Uni", "Glasgow City Centre", "Buchana Bus station"]
+locations_id = ["1-Partick", "2-Glasgow Uni", "3-Glasgow City Centre", "4-Buchanan Bus Station"]
+locations_id_abb = ["1-Pt", "2-UoG", "3-GCC", "4-BBS"]
 TIMER = 10
+ddlist = []
+fixbuttonlist = []
+confirmbuttonlist = []
 
 
 def timer_update(lb):
@@ -21,7 +27,7 @@ def timer_update(lb):
         lb.config(text='Update in {}s'.format(TIMER))
         if TIMER == 0:
             TIMER = 10
-            updateButton()
+            updateButton(bike_window)
         time.sleep(1)
 
 def _from_rgb(rgb):
@@ -51,15 +57,46 @@ def getBikes():
     bikes = ast.literal_eval(bikes)
     return bikes
 
-def updateButton():
+def moveBike(bike_id, location_id):
+    command = ("MOVE_BIKE",(bike_id, location_id))
+    clientSocket.send(bytes(str(command).encode('UTF-8')))
+
+def fixBike(bike_id):
+    command = ("FIX_BIKE", (bike_id,))
+    clientSocket.send(bytes(str(command).encode('UTF-8')))
+
+def updateButton(window):
     global TIMER
     global FIRST
     global LABELSLIST
     bikes = getBikes()
+    global ddlist
+    global fixbuttonlist
+    global confirmbuttonlist
     for row in range(len(bikes)):
+        # -----------
+        if FIRST:
+            ddlist.append(tk.StringVar())
+            selection_info = "Move to..."
+            ddlist[row].set(selection_info)
+            endlocation_menu = tk.OptionMenu(window, ddlist[row], *locations_id)
+            endlocation_menu.grid(row=row+2, column=7)
+            # -------------
+            b = tk.Button(text='Confirm', width=15, height=1, borderwidth=2, relief="raised",
+                          command=lambda id=bikes[row][0], dd= ddlist[row]:moveBike(id, dd.get().split('-')[0]))
+            b.grid(row=row+2, column = 8)
+            confirmbuttonlist.append(b)
+            # ---------
+            f = tk.Button(text='Fix Bike', width=15, height=1, borderwidth=2, relief="raised",
+                          command=lambda id=bikes[row][0]: fixBike(id))
+            f.grid(row=row + 2, column=9)
+            fixbuttonlist.append(f)
+        # ------------
         rowlist = []
         for column in range(len(bikes[row])):
             cur_text = str(bikes[row][column]) if str(bikes[row][column]) != 'None' else '-'
+            if column == 1:
+                cur_text = locations_id_abb[int(bikes[row][column])-1]
             if FIRST:
                 label = tk.Label(text=cur_text,
                         width=15, height=2, borderwidth=2, relief="sunken", )
@@ -73,14 +110,19 @@ def updateButton():
                     changing_color.start()
         if FIRST:
             LABELSLIST.append(rowlist)
+        if str(bikes[row][6]) == 'False':
+            fixbuttonlist[row].config(state='disabled')
+        elif str(bikes[row][6]) == 'True':
+            fixbuttonlist[row].config(state='normal')
     FIRST = False
     TIMER = 10
 
 
 def show_status_page():
+    global bike_window
     bike_window = tk.Tk()
     bike_window.title('Operator-Bikes Staus')
-    btn = tk.Button(bike_window, width=10, height=2, text='Update', command=lambda: updateButton())
+    btn = tk.Button(bike_window, width=10, height=2, text='Update', command=lambda: updateButton(bike_window))
     btn.grid(row=0, column=0)
     time_label = tk.Label(text='Update in {}s'.format(TIMER), width=15, height=2, borderwidth=2, relief="solid", )
     time_label.grid(row=0, column=1)
@@ -91,11 +133,10 @@ def show_status_page():
     tk.Label(text='Loc_longtitute', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=4)
     tk.Label(text='Rent time from', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=5)
     tk.Label(text='Reported', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=6)
-    timer = Thread(target=timer_update, args=(time_label,))
+    tk.Label(text='Move to', width=15, height=2, borderwidth=2, relief="sunken").grid(row=1, column=7)
+    timer = Thread(target=timer_update, args=(time_label, ))
     timer.start()
     bike_window.mainloop()
-
-
 
 
 if __name__ == '__main__':

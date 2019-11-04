@@ -213,3 +213,12 @@ class database(object):
     def getAllBikes(self):
         self.cursor.execute("SELECT * FROM Bikes")
         return self.cursor.fetchall()
+
+    def moveBike(self, data):
+        self.cursor.execute("UPDATE Bikes SET location_id={} WHERE id={}".format(str(data[1].split('-')[0]), str(data[0])))
+        self.db.commit()
+
+    def fixBike(self, data):
+        self.cursor.execute(
+            "UPDATE Bikes SET reported='{}' WHERE id={}".format('False', str(data[0])))
+        self.db.commit()
