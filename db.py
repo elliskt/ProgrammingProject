@@ -80,8 +80,8 @@ class database(object):
     # ----------------------- user -----------------------------------
     def addUser(self, _mobile, _pswd, _name, _type):
         try:
-            self.cursor.execute(""" INSERT INTO Users(mobile, pswd, name, type)
-                VALUES(?, ?, ?, ?);""", (_mobile, _pswd, _name, _type))
+            self.cursor.execute(""" INSERT INTO Users(mobile, pswd, balance, using_bikeid)
+                VALUES({}, {}, 10, NULL)""".format(_mobile, _pswd,))
             self.db.commit()
         except sql.IntegrityError as e:
             if e.args[0] == 'UNIQUE constraint failed: Users.mobile':

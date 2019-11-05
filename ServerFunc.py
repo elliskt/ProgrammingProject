@@ -27,8 +27,8 @@ class bikeSharingServer(database):
         # self.client_login = self.clientSocket.recv(self.BUFSIZE)
         # self.client_login = self.client_login.decode('utf-8')
         # self.mobile, pswd = self.client_login.split(' ')
-        print('[Server] Mobile number:', mobile)
-        print('[Server] Password:', pswd)
+        # print('[Server] Mobile number:', mobile)
+        # print('[Server] Password:', pswd)
         # ----- verify the username & password ---
         verificationStatus = self.verifyUser(mobile, pswd)
         # -----------------------------------------
