@@ -28,6 +28,7 @@ class ClientInterface(ClientConnection):
         self.first_timer = True
         self.my_font = Font(size=12)
         self.title_font = ('Helvetica', 18)
+        self.register_label = None
 
     def clear_window(self):
         for widget in self.window.winfo_children():
@@ -60,14 +61,48 @@ class ClientInterface(ClientConnection):
         self.login_page()
         self.window.mainloop()
 
+    def valid_number(self, phone_number):
+        if len(phone_number) != 10:
+            return False
+        
+        for i in range(10):
+            if not phone_number[i].isalnum():
+                return False
+        return True
+    
+    def valid_password(self, psw):
+        if len(psw) < 5:
+            return False
+        else:
+            return True
+
     def register_page_connect(self, un, pw):
-        regis_state = self.registerClient(un, pw)
-        if regis_state == "USER_EXISTS":
-            register_label = Label(text="The user already exists!")
-            register_label.place(x=150, y=220)
-            register_label.configure(fg="red")
-        elif regis_state == "USER_REGISTERD":
-            self.locationsPage()
+        if self.valid_number(un) == True:
+            if self.valid_password(pw):
+                regis_state = self.registerClient(un, pw)
+                if regis_state == "USER_EXISTS":
+                    self.register_label = Label(text="The user already exists!")
+                    self.register_label.place(x=150, y=220)
+                    self.register_label.configure(fg="red")
+                elif regis_state == "USER_REGISTERD":
+                    self.locationsPage()
+            else:
+                
+                if self.register_label:
+                    self.register_label.destroy()
+                    
+                self.register_label = Label(text="The password should be at least 5 charachters long!")
+                self.register_label.place(x=120, y=220)
+                self.register_label.configure(fg="red")
+        else:
+             
+             if self.register_label:
+                 self.register_label.destroy()
+              
+             self.register_label = Label(text="The phone number is not valid! It should have 10 digits!")
+             self.register_label.place(x=110, y=220)
+             self.register_label.configure(fg="red")
+            
 
     def register_page(self):
         self.clear_window()
@@ -97,6 +132,7 @@ class ClientInterface(ClientConnection):
         register_button = Button(text="Sign Up", command=lambda: self.register_page_connect(mobile_box.get(), password_box.get()))
         register_button.place(x=150, y=400, width=200, height=25)
         register_button.configure(font=3)
+        register_button.configure(background="#66A1DC")
 
     def login_page_connect(self, un, pw):
         login_state = self.clientLogin(un, pw)
@@ -246,6 +282,7 @@ class ClientInterface(ClientConnection):
         return_button = Button(text="Return Bike", command=lambda: self.trip_summary_page(self.hours, self.minutes, self.sec),
                                font=('Helvetica', 12))
         return_button.place(x=150, y=400, width=200, height=25)
+        return_button.configure(background="#66A1DC")
 
         self.timer(int(strftime("%S")), time_label)
 
@@ -308,8 +345,10 @@ class ClientInterface(ClientConnection):
 
         r = Button(popup, height=1, width=10, text="Report Bike", command=lambda p=popup: self.popup_release(popup, go_to))
         r.pack(side="left", padx=30)
+        #r.configure(background="#FFC300")
         n = Button(popup, height=1, width=10, text="Confirm", command=lambda bid=bike_id: self.confirmBike(popup, go_to2, bid))
         n.pack(side="right", padx=15)
+        #n.configure(background="#61ED6C")
         popup.mainloop()
 
     def confirmBike(self, popup, go_to2, bike_id):
@@ -400,7 +439,7 @@ class ClientInterface(ClientConnection):
         hint_reporter = StringVar(popup)
         report_type = ["Tire pressure leaked", "Tire damaged", "Bike not working",
                                       "Bike dirty", "Component missed", "Other"]
-        selection_info = "Select a issue"
+        selection_info = "Select an issue"
         hint_reporter.set(selection_info)
         endlocation_menu = OptionMenu(popup, hint_reporter, *report_type)
         endlocation_menu.pack()
@@ -435,29 +474,31 @@ class ClientInterface(ClientConnection):
         # setting payment to label, 0.2 pounds each second
         self.payment = round(sec*0.2 + minutes*60*0.2 + hours*3600*0.2, 2)
         pay_label = Label(text="Bill: £ {} ".format(self.payment))
-        pay_label.place(x=150, y=200, width=200, height=25)
+        pay_label.place(x=140, y=200, width=200, height=25)
         pay_label.configure(font=self.my_font)
         # dropdown for endloc
         hint = StringVar()
         selection_info = "Select ending location "
         hint.set(selection_info)
         endlocation_menu = OptionMenu(self.window, hint, "1-Partick", "2-Glasgow Uni", "3-Glasgow City Centre", "4-Buchanan Bus Station")
-        endlocation_menu.place(x=160, y=300, width=250)
+        endlocation_menu.place(x=140, y=300, width=250)
         endlocation_menu.configure(font=self.my_font)
 
         pay_button = Button(text="Pay", command=lambda: self.verify_location(hours, minutes, sec, hint.get(), selection_info))
         pay_button.place(x=200, y=420, width=120, height=30)
         pay_button.configure(font=self.my_font)
+        pay_button.configure(background="#66A1DC")
 
     def verify_location(self, h, m, s, sel, sel_info):
         self.duration = "{}:{}:{}".format(h, m, s)
-        self.return_location_id = int(sel.split('-')[0])
+        
         if sel == sel_info:
             self.trip_summary_page(h, m, s)
             register_label = Label(text="Please select the ending location!")
             register_label.place(x=170, y=370)
             register_label.configure(fg="red")
         else:
+            self.return_location_id = int(sel.split('-')[0])
             self.open_pay()
 
     def open_pay(self, ):
@@ -471,7 +512,7 @@ class ClientInterface(ClientConnection):
         else:
             statment_label1 = Label(text="Payment Successful. Please top-up.")
         self.reset_timer()
-        statment_label1.place(x=180, y=150)
+        statment_label1.place(x=150, y=150)
         statment_label1.configure(font=self.my_font)
         statment_label2 = Label(text="Balance: " + str(payment_state))
         statment_label2.place(x=180, y=180)
