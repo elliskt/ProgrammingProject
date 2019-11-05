@@ -154,7 +154,7 @@ class ClientInterface(ClientConnection):
 
     def cal_to_timer(self, bid):
         self.bike_id = bid
-        self.first_timer = False
+        self.first_timer = True
         previous_time = self.calDuration(bid)
         pre = previous_time.split('-')[1]
         d = datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
@@ -162,12 +162,11 @@ class ClientInterface(ClientConnection):
         self.hours=int(now[0]) - int(pre[0])
         FMT = '%H:%M:%S'
         tdelta = datetime.datetime.strptime(now, FMT) - datetime.datetime.strptime(pre, FMT)
-        print(tdelta)
+        print("[Client] continuous duration: ", tdelta)
         self.hours = int(str(tdelta).split(':')[0])
         self.minutes = int(str(tdelta).split(':')[1])
         self.sec = int(str(tdelta).split(':')[2])
         self.sec_backup = int(str(tdelta).split(':')[2])
-        print(self.hours, self.minutes, self.sec)
         self.timer_page()
 
     def login_page(self):
@@ -273,8 +272,7 @@ class ClientInterface(ClientConnection):
         self.show_back_button(self.locationsPage)
 
     def timer(self, s_initial, time_label):
-        s = int(strftime("%S"))
-        print(s, s_initial)
+        s = (int(strftime("%S")) + self.sec_backup) % 60
         if s < s_initial:
             self.sec = s + 60 - s_initial
         else:
