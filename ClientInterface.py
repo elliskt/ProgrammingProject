@@ -136,17 +136,39 @@ class ClientInterface(ClientConnection):
 
     def login_page_connect(self, un, pw):
         login_state = self.clientLogin(un, pw)
-        if login_state == "USER_NOT_EXIST":
+        if login_state[0] == "USER_NOT_EXIST":
             register_label = Label(text="The user does not exist!")
             register_label.place(x=150, y=220)
             register_label.configure(fg="red")
-        elif login_state == "USER_NOT_VERIFIED":
+        elif login_state[0] == "USER_NOT_VERIFIED":
             register_label = Label(text="The user and password don't match!")
             register_label.place(x=150, y=220)
             register_label.configure(fg="red")
-        elif login_state == "USER_VERIFIED":
+        elif login_state[0] == "USER_VERIFIED" and login_state[1] is None:
             self.username = un
             self.locationsPage()
+        elif login_state[0] == "USER_VERIFIED":
+            self.username = un
+            self.bike_id = int(login_state[1])
+            self.cal_to_timer(self.bike_id)
+
+    def cal_to_timer(self, bid):
+        self.bike_id = bid
+        self.first_timer = False
+        previous_time = self.calDuration(bid)
+        pre = previous_time.split('-')[1]
+        d = datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
+        now = d.split('-')[1]
+        self.hours=int(now[0]) - int(pre[0])
+        FMT = '%H:%M:%S'
+        tdelta = datetime.datetime.strptime(now, FMT) - datetime.datetime.strptime(pre, FMT)
+        print(tdelta)
+        self.hours = int(str(tdelta).split(':')[0])
+        self.minutes = int(str(tdelta).split(':')[1])
+        self.sec = int(str(tdelta).split(':')[2])
+        self.sec_backup = int(str(tdelta).split(':')[2])
+        print(self.hours, self.minutes, self.sec)
+        self.timer_page()
 
     def login_page(self):
         self.clear_window()
@@ -252,6 +274,7 @@ class ClientInterface(ClientConnection):
 
     def timer(self, s_initial, time_label):
         s = int(strftime("%S"))
+        print(s, s_initial)
         if s < s_initial:
             self.sec = s + 60 - s_initial
         else:
@@ -353,7 +376,7 @@ class ClientInterface(ClientConnection):
 
     def confirmBike(self, popup, go_to2, bike_id):
         self.bike_id = bike_id
-        self.rentBike(bike_id, datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S"))
+        self.rentBike(bike_id, datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S"), self.username)
         thread_sendloc = threading.Thread(target=self.sendLocation, args=(bike_id, ))
         thread_sendloc.start()
         self.popup_release(popup, go_to2)
@@ -459,6 +482,7 @@ class ClientInterface(ClientConnection):
 
     # billing screen
     def trip_summary_page(self, hours, minutes, sec):
+        self.sec_backup = None
         self.clear_window()
         tripend_label = Label(text="Trip Summary")
         tripend_label.place(x=180, y=30)
@@ -505,7 +529,7 @@ class ClientInterface(ClientConnection):
         self.clear_window()
         # (mobile,bike_id,duration,bill, start_location_id, return_location_id)
         payment_state = self.payBill(self.username, self.bike_id, self.duration, self.payment, self.start_location_id, self.return_location_id)
-        self.returnBike(self.bike_id, self.return_location_id)
+        self.returnBike(self.bike_id, self.return_location_id, self.username)
         payment_state = round(float(payment_state), 2)
         if payment_state > 0:
             statment_label1 = Label(text="Payment Successfull.")

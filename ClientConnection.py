@@ -29,8 +29,8 @@ class ClientConnection(object):
 
     def clientLogin(self, un, pw):
         self.clientSocket.send(bytes(('("VERIFY_LOGIN", ("{}", "{}"))').format(un, pw).encode('UTF-8')))
-        login_state = self.clientSocket.recv(BUFSIZE)
-        login_state = login_state.decode('UTF-8')
+        login_state1 = self.clientSocket.recv(BUFSIZE).decode('UTF-8')
+        login_state = ast.literal_eval(login_state1)
         return login_state
 
     def registerClient(self, un, pw):
@@ -62,8 +62,8 @@ class ClientConnection(object):
         command = ("SEND_REPORT", (bike_id, user_id, location_id, error_type, date))
         self.clientSocket.send(bytes(str(command).encode('UTF-8')))
 
-    def rentBike(self, bike, date):
-        command = ("RENT_BIKE", (bike, date, ))
+    def rentBike(self, bike, date, mobile):
+        command = ("RENT_BIKE", (bike, date, mobile))
         self.clientSocket.send(bytes(str(command).encode('UTF-8')))
 
     def sendLocation(self, bid):
@@ -73,6 +73,12 @@ class ClientConnection(object):
         command = ("SEND_LOCATION", (bid, lat, lng))
         self.clientSocket.send(bytes(str(command).encode('UTF-8')))
 
-    def returnBike(self, bid, return_loc_id):
-        command = ("RETURN_BIKE_RESET", (bid, return_loc_id))
+    def returnBike(self, bid, return_loc_id, mobile):
+        command = ("RETURN_BIKE_RESET", (bid, return_loc_id, mobile))
         self.clientSocket.send(bytes(str(command).encode('UTF-8')))
+
+    def calDuration(self, bid):
+        command = ("CAL_DURATION", (bid, ))
+        self.clientSocket.send(bytes(str(command).encode('UTF-8')))
+        time = self.clientSocket.recv(BUFSIZE).decode('UTF-8')
+        return time
