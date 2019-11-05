@@ -66,7 +66,7 @@ class bikeSharingServer(database):
     # ------------ pay bill and record -----------------
     def payBillCommand(self, tupleRcvd):
         # (mobile, bike_id, duration, bill, start_location_id, return_location_id)
-        pay_state = self.payBill(tupleRcvd[0], tupleRcvd[3])
+        pay_state = self.payBill(tupleRcvd[0], tupleRcvd[1], tupleRcvd[2], tupleRcvd[3], tupleRcvd[4], tupleRcvd[5])
         self.clientSocket.sendall(bytes(str(pay_state).encode('utf-8')))
         self.receiveCommand()
 
@@ -103,6 +103,21 @@ class bikeSharingServer(database):
     def returnBikeResetCommand(self, tupleRcvd):
         self.returnBikeReset(tupleRcvd)
         self.receiveCommand()
+        
+    def getLogCommand(self):
+        counts = self.countLogperStation()
+        self.clientSocket.sendall(bytes(str(counts).encode('utf-8')))
+        self.receiveCommand()
+        
+    def getIncomeCommand(self):
+        income = self.getIncomeperStation()
+        self.clientSocket.sendall(bytes(str(income).encode('utf-8')))
+        self.receiveCommand()
+        
+    def getBrokenBikeCommand(self):
+        badBikes = self.getBrokenbikesperStation()
+        self.clientSocket.sendall(bytes(str(badBikes).encode('utf-8')))
+        self.receiveCommand()
 
     # ------------- Packet Structure: ("COMMAND_NAME", (command specific fields)) ------------
     def receiveCommand(self):
@@ -137,3 +152,9 @@ class bikeSharingServer(database):
             self.sendLocationCommand(tupleRcvd[1])
         elif command =="RETURN_BIKE_RESET":
             self.returnBikeResetCommand(tupleRcvd[1])
+        elif command == "GET_LOG_COUNT":
+            self.getLogCommand()
+        elif command == "GET_INCOME":
+            self.getIncomeCommand()
+        elif command == "GET_BROKEN_BIKE":
+            self.getBrokenBikeCommand()

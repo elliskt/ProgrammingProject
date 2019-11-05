@@ -187,7 +187,7 @@ class database(object):
         self.cursor.execute((" SELECT * FROM Bikes WHERE location_id={} ".format(str(location_id))))
         return self.cursor.fetchall()
 
-    def payBill(self, mobile, bill):
+    def payBill(self,mobile, bike_id, duration, bill, start_location_id, return_location_id):
         # -------- get balance ---
         self.cursor.execute(("SELECT * FROM Users WHERE mobile = '{}'".format(mobile)))
         balance = self.cursor.fetchall()[0][2]
@@ -196,7 +196,48 @@ class database(object):
         self.cursor.execute(("UPDATE Users SET balance={} WHERE mobile='{}'".format(balance, mobile)))
         self.db.commit()
         print("[Server] {} paid £ {}.".format(mobile, bill))
+        # -------- logging --------
+        self.recordLog(mobile, bike_id, duration, bill, start_location_id, return_location_id)
+        print("[Server] {} 's trip has been logged.".format(mobile))
         return balance
+
+    def recordLog(self, mobile, bike_id, duration, bill, start_location_id, return_location_id):
+        id = self.countLog()+1
+        self.cursor.execute("INSERT INTO Log(id, mobile, bike_id, cost, duration, start_location_id, return_location_id) VALUES(?,?,?,?,?,?,?)",
+                            (id, mobile, bike_id, bill, duration, start_location_id, return_location_id))
+        self.db.commit()
+        
+    def countLog(self):
+        self.cursor.execute("SELECT COUNT(*) FROM Log")
+        count = self.cursor.fetchall()
+        return int(count[0][0])
+    
+    def countLogperStation(self):
+        try:
+            self.cursor.execute("SELECT COUNT(*) FROM Log GROUP BY start_location_id ;")
+            count = self.cursor.fetchall()
+            #"detuple" the tuples in the list using list comprehension
+            return [i for t in count for i in t]
+        except sql.OperationalError as e:
+            return e
+    
+    def getIncomeperStation(self):
+        try:
+            self.cursor.execute("SELECT SUM(cost) FROM Log GROUP BY start_location_id;")
+            Income = self.cursor.fetchall()
+            #"detuple" the tuples in the list using list comprehension
+            return [i for t in Income for i in t]
+        except sql.OperationalError as e:
+            return e
+        
+    def getBrokenbikesperStation(self):
+        try:
+            self.cursor.execute("SELECT COUNT(*) FROM Bikes WHERE reported = 'True' GROUP BY location_id;")
+            badBikes = self.cursor.fetchall()
+            #"detuple" the tuples in the list using list comprehension
+            return [i for t in badBikes for i in t]
+        except sql.OperationalError as e:
+            return e
 
     # def recordLog(self,  id, mobile, bike_id, duration, bill, start_location_id, return_location_id):
 

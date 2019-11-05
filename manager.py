@@ -2,9 +2,39 @@ from tkinter import *
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from tkinter.font import Font
+import socket
+from threading import Thread
+import ast
+
+#FIRST = True
+bike_window = None
+LABELSLIST = []
+BUFSIZE = 1024
+serverAddr = ('127.0.0.1', 65501)
+clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+locations_id = [1, 2, 3, 4]
+locations_id_abb = ["1-Pt", "2-UoG", "3-GCC", "4-BBS"]
+#TIMER = 10
+#ddlist = []
+#fixbuttonlist = []
+#confirmbuttonlist = []
+
+
+def client_connect_server():
+    # ------ client connect --------
+    print('Client is connecting to the server......')
+    try:
+        clientSocket.connect(serverAddr)  # try connect to server
+        print("[Server] Connect successful.")
+
+    except ConnectionRefusedError:
+        print("Server error, please try again")
+        exit(1)
 
 def manager_page():
-
+    
     datatype = [
             "Rental activities",
             "Rents per station",
@@ -14,7 +44,6 @@ def manager_page():
 
     Chart_Type = [
             "Bar Chart",
-            "Line Chart",
             "Pie Chart"
             ]
 
@@ -38,32 +67,39 @@ def manager_page():
     plot.grid(row=2,column=1,pady = 40)
 
 def draw(chartType,datatype):
-    
-    if chartType == "Line Chart" :
+    if chartType == "Bar Chart":
         if datatype =="Rental activities":
-            LineChart(["St1","St2","St3"],[1,2,3])
-        elif datatype =="Rents per station":
-            LineChart(["St1","St2","St3"],[135,346,523])
-        elif datatype =="Weekly rental report":
-            LineChart(["St1","St2","St3"],[3,2,1])
-        else:
-            print("Some bullshit")
             
-    elif chartType == "Bar Chart":
-        if datatype =="Rental activities":
-            BarChart(["St1","St2","St3"],[1,2,3],False)
+            rentals_per_station = getLog()
+            print(rentals_per_station)
+            BarChart(locations_id_abb,rentals_per_station,False)
         elif datatype =="Rents per station":
-            BarChart(["St1","St2","St3"],[135,346,523],False)
-        elif datatype =="Weekly rental report":
-            BarChart(["St1","St2","St3"],[3,2,1],True)
+            
+            income_per_station = getIncome()
+                
+            BarChart(locations_id_abb,income_per_station,False)
+        elif datatype =="Broken Bike per station":
+            
+            brokenBikes = getBrokenBike()
+            
+            BarChart(locations_id_abb,brokenBikes,False)
         
     elif chartType  == "Pie Chart":
         if datatype =="Rental activities":
-            PieChart(["St1","St2","St3"],[1,2,3])
+            
+            rentals_per_station = getLog()
+                
+            PieChart(locations_id_abb,rentals_per_station)
         elif datatype =="Rents per station":
-            PieChart(["St1","St2","St3"],[135,346,523])
-        elif datatype =="Weekly rental report":
-            PieChart(["St1","St2","St3"],[3,2,1])
+            
+            income_per_station = getIncome()
+            
+            PieChart(locations_id_abb,income_per_station)
+        elif datatype =="Broken Bike per station":
+            
+            brokenBikes = getBrokenBike()
+            
+            PieChart(locations_id_abb,brokenBikes)
     else:
         print("you picked the wrong chart fool!")
 
@@ -93,3 +129,60 @@ def PieChart(datasetx,datasety):
     canvas = FigureCanvasTkAgg(fig,master=window)
     canvas.draw()
     canvas.get_tk_widget().grid(row=3,columnspan=3)
+    
+def getLocations():
+    clientSocket.send(bytes(('("GET_LOCATIONS", ("Locations", "name"))').encode('UTF-8')))
+    locations = clientSocket.recv(BUFSIZE).decode('UTF-8')
+    locations = ast.literal_eval(locations)
+    return locations
+
+def getLog():
+    command = ("GET_LOG_COUNT",)
+    clientSocket.send(bytes(str(command).encode('UTF-8'))) 
+    log_count = clientSocket.recv(BUFSIZE).decode('UTF-8')
+    log_count = ast.literal_eval(log_count)
+    return log_count
+
+def getIncome():
+    command = ("GET_INCOME",)
+    clientSocket.send(bytes(str(command).encode('UTF-8'))) 
+    log_count = clientSocket.recv(BUFSIZE).decode('UTF-8')
+    log_count = ast.literal_eval(log_count)
+    return log_count
+
+def getBrokenBike():
+    command = ("GET_BROKEN_BIKE",)
+    clientSocket.send(bytes(str(command).encode('UTF-8'))) 
+    log_count = clientSocket.recv(BUFSIZE).decode('UTF-8')
+    log_count = ast.literal_eval(log_count)
+    return log_count
+
+
+def main_page():
+    window.title("BikeSharing")
+    w = 500 # width for the Tk root
+    h = 530 # height for the Tk root
+    
+    # get screen width and height
+    ws = window.winfo_screenwidth() # width of the screen
+    hs = window.winfo_screenheight() # height of the screen
+    
+    # calculate x and y coordinates for the Tk root window
+    x = (ws/2) - (w/2)
+    y = (hs/2) - (h/2)
+    window.geometry('%dx%d+%d+%d' % (w, h, x, y)) # place the window in the middle of the screen
+
+    global my_font
+    my_font = Font(size=12)
+    global title_font
+    title_font = ('Helvetica', 18)
+    manager_page()
+    window.mainloop()
+
+
+
+if __name__ == '__main__':
+    
+    client_connect_server()
+    window = Tk()
+    main_page()
