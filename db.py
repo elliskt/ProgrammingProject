@@ -81,8 +81,8 @@ class database(object):
     # ----------------------- user -----------------------------------
     def addUser(self, _mobile, _pswd, _name, _type):
         try:
-            self.cursor.execute(""" INSERT INTO Users(mobile, pswd, name, type)
-                VALUES(?, ?, ?, ?);""", (_mobile, _pswd, _name, _type))
+            self.cursor.execute(""" INSERT INTO Users(mobile, pswd, balance, using_bikeid)
+                VALUES({}, {}, 10, NULL)""".format(_mobile, _pswd,))
             self.db.commit()
         except sql.IntegrityError as e:
             if e.args[0] == 'UNIQUE constraint failed: Users.mobile':
@@ -94,15 +94,17 @@ class database(object):
     def verifyUser(self, mobile, pswd):  # return
         self.cursor.execute("""SELECT COUNT(1) FROM Users WHERE mobile = ? AND pswd = ?""", (mobile, pswd))
         count = self.cursor.fetchall()[0][0]
+        self.cursor.execute("""SELECT * FROM Users WHERE mobile = ? AND pswd = ?""", (mobile, pswd))
+        bike_id = self.cursor.fetchall()[0][3]
         if count == 1:
-            return "USER_VERIFIED"
+            return "USER_VERIFIED", bike_id
         else:
             self.cursor.execute("""SELECT COUNT(1) FROM Users WHERE mobile = ?""", (mobile,))
             count = self.cursor.fetchall()[0][0]
             if count == 1:
-                return "USER_NOT_VERIFIED"
+                return "USER_NOT_VERIFIED", ""
             else:
-                return "USER_NOT_EXIST"
+                return "USER_NOT_EXIST", ""
 
     def deleteUser(self, _mobile):
         self.cursor.execute("DELETE FROM Users WHERE mobile='{}';".format(_mobile))
@@ -179,7 +181,7 @@ class database(object):
         self.cursor.execute((" SELECT * FROM Bikes WHERE location_id={} ".format(str(location_id))))
         return self.cursor.fetchall()
 
-    def payBill(self,mobile, bike_id, duration, bill, start_location_id, return_location_id, date):
+    def payBill(self, mobile, bike_id, duration, bill, start_location_id, return_location_id, date):
         # -------- get balance ---
         self.cursor.execute(("SELECT * FROM Users WHERE mobile = '{}'".format(mobile)))
         balance = self.cursor.fetchall()[0][2]
@@ -270,6 +272,8 @@ class database(object):
             "UPDATE Bikes SET time_from='{}' WHERE id={}".format(str(data[1]), str(data[0])))
         self.cursor.execute(
             "UPDATE Bikes SET location_id=NULL WHERE id={}".format(str(data[0])))
+        self.cursor.execute(
+            "UPDATE Users SET using_bikeid={} WHERE mobile='{}'".format(data[0], str(data[2])))
         self.db.commit()
 
     def sendLocation(self,data):
@@ -291,7 +295,11 @@ class database(object):
             "UPDATE Bikes SET in_use='False' WHERE id={}".format(str(data[0])))
         self.cursor.execute(
             "UPDATE Bikes SET location_id={} WHERE id={}".format(str(data[1]), str(data[0])))
+        self.cursor.execute(
+            "UPDATE Users SET using_bikeid=NULL WHERE mobile='{}'".format(str(data[2])))
         self.db.commit()
 
-
-
+    def calDuration(self, data):
+        self.cursor.execute("SELECT time_from FROM Bikes WHERE id={}".format(data[0]))
+        time = self.cursor.fetchall()[0][0]
+        return time
