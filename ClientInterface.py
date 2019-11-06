@@ -28,7 +28,8 @@ class ClientInterface(ClientConnection):
         self.first_timer = True
         self.my_font = Font(size=12)
         self.title_font = ('Helvetica', 18)
-
+        self.register_label = None
+        self.sec_backup = None
     def clear_window(self):
         for widget in self.window.winfo_children():
             widget.destroy()
@@ -60,14 +61,48 @@ class ClientInterface(ClientConnection):
         self.login_page()
         self.window.mainloop()
 
+    def valid_number(self, phone_number):
+        if len(phone_number) != 10:
+            return False
+        
+        for i in range(10):
+            if not phone_number[i].isalnum():
+                return False
+        return True
+    
+    def valid_password(self, psw):
+        if len(psw) < 5:
+            return False
+        else:
+            return True
+
     def register_page_connect(self, un, pw):
-        regis_state = self.registerClient(un, pw)
-        if regis_state == "USER_EXISTS":
-            register_label = Label(text="The user already exists!")
-            register_label.place(x=150, y=220)
-            register_label.configure(fg="red")
-        elif regis_state == "USER_REGISTERD":
-            self.locationsPage()
+        if self.valid_number(un) == True:
+            if self.valid_password(pw):
+                regis_state = self.registerClient(un, pw)
+                if regis_state == "USER_EXISTS":
+                    self.register_label = Label(text="The user already exists!")
+                    self.register_label.place(x=150, y=220)
+                    self.register_label.configure(fg="red")
+                elif regis_state == "USER_REGISTERD":
+                    self.locationsPage()
+            else:
+                
+                if self.register_label:
+                    self.register_label.destroy()
+                    
+                self.register_label = Label(text="The password should be at least 5 charachters long!")
+                self.register_label.place(x=120, y=220)
+                self.register_label.configure(fg="red")
+        else:
+             
+             if self.register_label:
+                 self.register_label.destroy()
+              
+             self.register_label = Label(text="The phone number is not valid! It should have 10 digits!")
+             self.register_label.place(x=110, y=220)
+             self.register_label.configure(fg="red")
+            
 
     def register_page(self):
         self.clear_window()
@@ -97,20 +132,42 @@ class ClientInterface(ClientConnection):
         register_button = Button(text="Sign Up", command=lambda: self.register_page_connect(mobile_box.get(), password_box.get()))
         register_button.place(x=150, y=400, width=200, height=25)
         register_button.configure(font=3)
+        register_button.configure(background="#66A1DC")
 
     def login_page_connect(self, un, pw):
         login_state = self.clientLogin(un, pw)
-        if login_state == "USER_NOT_EXIST":
+        if login_state[0] == "USER_NOT_EXIST":
             register_label = Label(text="The user does not exist!")
             register_label.place(x=150, y=220)
             register_label.configure(fg="red")
-        elif login_state == "USER_NOT_VERIFIED":
+        elif login_state[0] == "USER_NOT_VERIFIED":
             register_label = Label(text="The user and password don't match!")
             register_label.place(x=150, y=220)
             register_label.configure(fg="red")
-        elif login_state == "USER_VERIFIED":
+        elif login_state[0] == "USER_VERIFIED" and login_state[1] is None:
             self.username = un
             self.locationsPage()
+        elif login_state[0] == "USER_VERIFIED":
+            self.username = un
+            self.bike_id = int(login_state[1])
+            self.cal_to_timer(self.bike_id)
+
+    def cal_to_timer(self, bid):
+        self.bike_id = bid
+        self.first_timer = True
+        previous_time = self.calDuration(bid)
+        pre = previous_time.split('-')[1]
+        d = datetime.datetime.now().strftime("/%m/%d/%Y-%H:%M:%S")
+        now = d.split('-')[1]
+        self.hours=int(now[0]) - int(pre[0])
+        FMT = '%H:%M:%S'
+        tdelta = datetime.datetime.strptime(now, FMT) - datetime.datetime.strptime(pre, FMT)
+        print("[Client] continuous duration: ", tdelta)
+        self.hours = int(str(tdelta).split(':')[0])
+        self.minutes = int(str(tdelta).split(':')[1])
+        self.sec = int(str(tdelta).split(':')[2])
+        self.sec_backup = int(str(tdelta).split(':')[2])
+        self.timer_page()
 
     def login_page(self):
         self.clear_window()
@@ -174,29 +231,26 @@ class ClientInterface(ClientConnection):
         self.start_location_id = location_id
         # clientSocket.sendall(json.dumps('{"GET_COLUMNS_IN_TABLE", {"Bikes", "id, location_id"}}').encode('UTF-8'))
         # clear_window()
-        # create a canvas object with a veritical scroll bar attach to it
+        # create a canvas object and a vertical scrollbar for scrolling it
 
-        scrollbar = Scrollbar(self.window, orient='vertical')
-        scrollbar.pack(side='right', fill='y', expand='False')
+        vscrollbar = Scrollbar(self.window, orient='vertical')
+        vscrollbar.pack(side='right', fill='y', expand='False')
         canvas = Canvas(self.window, bd=0, highlightthickness=0,
-                        yscrollcommand=scrollbar.set)
+                        yscrollcommand=vscrollbar.set)
         canvas.pack(side="left", fill="both", expand="True")
-        scrollbar.config(command=canvas.yview)
+        vscrollbar.config(command=canvas.yview)
 
         # reset the view
         canvas.xview_moveto(0)
         canvas.yview_moveto(0)
 
-        # create a frame inside the canvas
+        # create a frame inside the canvas which will be scrolled with it
         interior = Frame(canvas)
         self.window.interior = interior
         interior_id = canvas.create_window(0, 0, window=interior, anchor='nw')
 
-
-
-        
         # track changes to the canvas and frame width and sync them,
-        #update the scrollbar
+        # also updating the scrollbar
         def configure_interior(event):
             # update the scrollbars to match the size of the inner frame
             size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
@@ -205,19 +259,20 @@ class ClientInterface(ClientConnection):
                 # update the canvas's width to fit the inner frame
                 canvas.config(width=interior.winfo_reqwidth())
 
+        interior.bind('<Configure>', configure_interior)
+
         def configure_canvas(event):
             if interior.winfo_reqwidth() != canvas.winfo_width():
                 # update the inner frame's width to fill the canvas
                 canvas.itemconfigure(interior_id, width=canvas.winfo_width())
-                
-                
+
         canvas.bind('<Configure>', configure_canvas)
-        interior.bind('<Configure>', configure_interior)
+
         self.draw_bikes_button_page(location_id)  # if it's an operator should draw operator_buttons
         self.show_back_button(self.locationsPage)
-                
+
     def timer(self, s_initial, time_label):
-        s = int(strftime("%S"))
+        s = (int(strftime("%S")) + self.sec_backup) % 60
         if s < s_initial:
             self.sec = s + 60 - s_initial
         else:
@@ -248,6 +303,7 @@ class ClientInterface(ClientConnection):
         return_button = Button(text="Return Bike", command=lambda: self.trip_summary_page(self.hours, self.minutes, self.sec),
                                font=('Helvetica', 12))
         return_button.place(x=150, y=400, width=200, height=25)
+        return_button.configure(background="#66A1DC")
 
         self.timer(int(strftime("%S")), time_label)
 
@@ -263,7 +319,8 @@ class ClientInterface(ClientConnection):
             if reported_status == 'True':
                 btn.config(state='disabled', bg='#EA5C5C')
             btn.pack(padx=10, pady=5, side="top")
-    #Deprecated
+            
+#Deprecated
     def draw_operator_buttons(self, stationId):
         # ....... connect to db here
         bikelist = ["Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike",
@@ -310,13 +367,15 @@ class ClientInterface(ClientConnection):
 
         r = Button(popup, height=1, width=10, text="Report Bike", command=lambda p=popup: self.popup_release(popup, go_to))
         r.pack(side="left", padx=30)
+        #r.configure(background="#FFC300")
         n = Button(popup, height=1, width=10, text="Confirm", command=lambda bid=bike_id: self.confirmBike(popup, go_to2, bid))
         n.pack(side="right", padx=15)
+        #n.configure(background="#61ED6C")
         popup.mainloop()
 
     def confirmBike(self, popup, go_to2, bike_id):
         self.bike_id = bike_id
-        self.rentBike(bike_id, datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S"))
+        self.rentBike(bike_id, datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S"), self.username)
         thread_sendloc = threading.Thread(target=self.sendLocation, args=(bike_id, ))
         thread_sendloc.start()
         self.popup_release(popup, go_to2)
@@ -402,7 +461,7 @@ class ClientInterface(ClientConnection):
         hint_reporter = StringVar(popup)
         report_type = ["Tire pressure leaked", "Tire damaged", "Bike not working",
                                       "Bike dirty", "Component missed", "Other"]
-        selection_info = "Select a issue"
+        selection_info = "Select an issue"
         hint_reporter.set(selection_info)
         endlocation_menu = OptionMenu(popup, hint_reporter, *report_type)
         endlocation_menu.pack()
@@ -414,7 +473,7 @@ class ClientInterface(ClientConnection):
 
         confirm_btn = Button(popup, height=1, width=10, text="Confirm",
                              command=lambda b_id=self.bike_id, u_id=self.username, l_id=self.start_location_id,
-                             d=datetime.datetime.now().strftime("%Y/%m/%d-%H:%M:%S"):
+                             d=datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S"):
                              self.open_reporter_sendError(popup, go_to, b_id, u_id, l_id, hint_reporter.get(), d))
         confirm_btn.pack()
         popup.mainloop()
@@ -422,6 +481,7 @@ class ClientInterface(ClientConnection):
 
     # billing screen
     def trip_summary_page(self, hours, minutes, sec):
+        self.sec_backup = None
         self.clear_window()
         tripend_label = Label(text="Trip Summary")
         tripend_label.place(x=180, y=30)
@@ -437,43 +497,45 @@ class ClientInterface(ClientConnection):
         # setting payment to label, 0.2 pounds each second
         self.payment = round(sec*0.2 + minutes*60*0.2 + hours*3600*0.2, 2)
         pay_label = Label(text="Bill: £ {} ".format(self.payment))
-        pay_label.place(x=150, y=200, width=200, height=25)
+        pay_label.place(x=140, y=200, width=200, height=25)
         pay_label.configure(font=self.my_font)
         # dropdown for endloc
         hint = StringVar()
         selection_info = "Select ending location "
         hint.set(selection_info)
         endlocation_menu = OptionMenu(self.window, hint, "1-Partick", "2-Glasgow Uni", "3-Glasgow City Centre", "4-Buchanan Bus Station")
-        endlocation_menu.place(x=160, y=300, width=250)
+        endlocation_menu.place(x=140, y=300, width=250)
         endlocation_menu.configure(font=self.my_font)
 
         pay_button = Button(text="Pay", command=lambda: self.verify_location(hours, minutes, sec, hint.get(), selection_info))
         pay_button.place(x=200, y=420, width=120, height=30)
         pay_button.configure(font=self.my_font)
+        pay_button.configure(background="#66A1DC")
 
     def verify_location(self, h, m, s, sel, sel_info):
         self.duration = "{}:{}:{}".format(h, m, s)
-        self.return_location_id = int(sel.split('-')[0])
+        
         if sel == sel_info:
             self.trip_summary_page(h, m, s)
             register_label = Label(text="Please select the ending location!")
             register_label.place(x=170, y=370)
             register_label.configure(fg="red")
         else:
+            self.return_location_id = int(sel.split('-')[0])
             self.open_pay()
 
-    def open_pay(self):
+    def open_pay(self, ):
         self.clear_window()
-        # (mobile,bike_id,duration,bill, start_location_id, return_location_id)
+        # (mobile,bike_id,duration,bill, start_location_id, return_location_id,date)
         payment_state = self.payBill(self.username, self.bike_id, self.duration, self.payment, self.start_location_id, self.return_location_id, datetime.datetime.now().strftime("%Y/%m/%d"))
-        self.returnBike(self.bike_id, self.return_location_id)
+        self.returnBike(self.bike_id, self.return_location_id, self.username)
         payment_state = round(float(payment_state), 2)
         if payment_state > 0:
             statment_label1 = Label(text="Payment Successfull.")
         else:
             statment_label1 = Label(text="Payment Successful. Please top-up.")
         self.reset_timer()
-        statment_label1.place(x=180, y=150)
+        statment_label1.place(x=150, y=150)
         statment_label1.configure(font=self.my_font)
         statment_label2 = Label(text="Balance: " + str(payment_state))
         statment_label2.place(x=180, y=180)
@@ -486,4 +548,3 @@ class ClientInterface(ClientConnection):
         report_button = Button(text="Report Bike", command=self.open_reporter)
         report_button.place(x=100, y=350, width=120, height=30)
         report_button.configure(font=self.my_font)
-        
