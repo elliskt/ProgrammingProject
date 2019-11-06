@@ -47,7 +47,7 @@ def manager_page():
 
     xaxis = OptionMenu(window,varx,*datatype)
     x = Label(text="Data")
-    x.grid(row=0,column=1,padx = 240)
+    x.grid(row=0,column=1,padx = 260)
     xaxis.grid(row=1,column=1)
     
     plot = Button(window, height = 1, width = 5,text = "Draw",command=lambda: draw(varx.get()))
@@ -60,7 +60,6 @@ def draw(datatype):
             while i<7:
                 xaxis.append(datetime.date.today()-datetime.timedelta(days = i))
                 i+=1
-                print(xaxis)
             rentals_per_station = []
             for i in locations_id :
                 temp = []
@@ -83,9 +82,8 @@ def draw(datatype):
             
 def LineChart(datasetx,datasety,legend_name):
     
-    fig = Figure(figsize=(5,5))
+    fig = Figure(figsize=(7,5))
     a = fig.add_subplot(111)
-    print(datasety)
     for r in datasety:
         a.plot(datasetx,r)
     
@@ -96,7 +94,7 @@ def LineChart(datasetx,datasety,legend_name):
 
 def BarChart(datasetx,datasety,stacked):
     
-    fig = Figure(figsize=(5,5))
+    fig = Figure(figsize=(7,5))
     a = fig.add_subplot(111)
     a.bar(datasetx,datasety)
     canvas = FigureCanvasTkAgg(fig,master=window)
@@ -105,7 +103,7 @@ def BarChart(datasetx,datasety,stacked):
 
 def PieChart(datasetx,datasety):
     
-    fig = Figure(figsize=(5,5))
+    fig = Figure(figsize=(7,5))
     a = fig.add_subplot(111)
     a.pie(datasety,labels=datasetx)
     canvas = FigureCanvasTkAgg(fig,master=window)
@@ -142,7 +140,7 @@ def getBrokenBike():
 
 def main_page():
     window.title("BikeSharing")
-    w = 500 # width for the Tk root
+    w = 550 # width for the Tk root
     h = 530 # height for the Tk root
     
     # get screen width and height

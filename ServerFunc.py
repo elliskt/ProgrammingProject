@@ -15,7 +15,7 @@ class bikeSharingServer(database):
 
     # ------------- close user --------------
     def closeUser(self):
-        print('[Server] %s left.' % (self.client_mobile ))
+        print('[Server] %s left.' % (self.client_mobile if self.client_mobile is not None else 'Admin'))
         self.clientSocket.close()
         exit(1)
     # -------------------------------------------
@@ -27,18 +27,17 @@ class bikeSharingServer(database):
         # self.client_login = self.clientSocket.recv(self.BUFSIZE)
         # self.client_login = self.client_login.decode('utf-8')
         # self.mobile, pswd = self.client_login.split(' ')
-        # print('[Server] Mobile number:', mobile)
-        # print('[Server] Password:', pswd)
+        print('[Server] Mobile number:', mobile)
+        print('[Server] Password:', pswd)
         # ----- verify the username & password ---
         verificationStatus = self.verifyUser(mobile, pswd)
-        print("verificationStatus", verificationStatus)
         # -----------------------------------------
-        if verificationStatus[0] == 'USER_VERIFIED' or verificationStatus[0] =="USER_VERIFIED_USING":
+        if verificationStatus == 'USER_VERIFIED':
             print("[Server] %s login succeeded." % mobile)
         else:
             print("[Server] %s error: %s" % (mobile, verificationStatus))
         # return the result of this login attempt ("USER_NOT_EXIST, ", "USER_UNVERIFIED", "USER_VERIFIED")
-        self.clientSocket.sendall(bytes(str(verificationStatus).encode('utf-8')))
+        self.clientSocket.sendall(bytes(verificationStatus.encode('utf-8')))
         # ------ go back to receiveCommand
         self.receiveCommand()
 
@@ -120,11 +119,6 @@ class bikeSharingServer(database):
         self.clientSocket.sendall(bytes(str(badBikes).encode('utf-8')))
         self.receiveCommand()
 
-    def calDurationCommand(self, tupleRcvd):
-        time = self.calDuration(tupleRcvd)
-        self.clientSocket.sendall(bytes(str(time).encode('utf-8')))
-        self.receiveCommand()
-
     # ------------- Packet Structure: ("COMMAND_NAME", (command specific fields)) ------------
     def receiveCommand(self):
         client_command = self.clientSocket.recv(self.BUFSIZE).decode('utf-8')
@@ -164,5 +158,3 @@ class bikeSharingServer(database):
             self.getIncomeCommand()
         elif command == "GET_BROKEN_BIKE":
             self.getBrokenBikeCommand()
-        elif command == "CAL_DURATION":
-            self.calDurationCommand(tupleRcvd[1])
