@@ -114,6 +114,10 @@ def updateButton(window):
             fixbuttonlist[row].config(state='disabled')
         elif str(bikes[row][6]) == 'True':
             fixbuttonlist[row].config(state='normal')
+        if str(bikes[row][2]) == 'True':
+            confirmbuttonlist[row].config(state='disabled')
+        elif str(bikes[row][2]) == 'False':
+            confirmbuttonlist[row].config(state='normal')
     FIRST = False
     TIMER = 10
 

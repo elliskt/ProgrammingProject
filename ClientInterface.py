@@ -30,6 +30,7 @@ class ClientInterface(ClientConnection):
         self.title_font = ('Helvetica', 18)
         self.register_label = None
         self.sec_backup = None
+
     def clear_window(self):
         for widget in self.window.winfo_children():
             widget.destroy()
@@ -158,6 +159,7 @@ class ClientInterface(ClientConnection):
         previous_time = self.calDuration(bid)
         pre = previous_time.split('-')[1]
         d = datetime.datetime.now().strftime("/%m/%d/%Y-%H:%M:%S")
+        d = datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
         now = d.split('-')[1]
         self.hours=int(now[0]) - int(pre[0])
         FMT = '%H:%M:%S'
@@ -272,7 +274,14 @@ class ClientInterface(ClientConnection):
         self.show_back_button(self.locationsPage)
 
     def timer(self, s_initial, time_label):
-        s = (int(strftime("%S")) + self.sec_backup) % 60
+        if self.sec_backup is None:
+            s = int(strftime("%S"))
+        else:
+            s = (int(strftime("%S")) + self.sec_backup) % 60
+        if self.sec_backup is None:
+            s = (int(strftime("%S")))
+        else:
+            s = (int(strftime("%S")) + self.sec_backup) % 60
         if s < s_initial:
             self.sec = s + 60 - s_initial
         else:
@@ -528,7 +537,7 @@ class ClientInterface(ClientConnection):
         self.clear_window()
         # (mobile,bike_id,duration,bill, start_location_id, return_location_id,date)
         payment_state = self.payBill(self.username, self.bike_id, self.duration, self.payment, self.start_location_id, self.return_location_id, datetime.datetime.now().strftime("%Y/%m/%d"))
-        self.returnBike(self.bike_id, self.return_location_id, self.username)
+        self.returnBike(self.bike_id, self.return_location_id, self.username, )
         payment_state = round(float(payment_state), 2)
         if payment_state > 0:
             statment_label1 = Label(text="Payment Successfull.")
@@ -547,4 +556,5 @@ class ClientInterface(ClientConnection):
         # ----- report bike button ----
         report_button = Button(text="Report Bike", command=self.open_reporter)
         report_button.place(x=100, y=350, width=120, height=30)
+        report_button.configure(font=self.my_font)
         report_button.configure(font=self.my_font)

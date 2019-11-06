@@ -75,6 +75,9 @@ class ClientConnection(object):
 
     def returnBike(self, bid, return_loc_id, mobile):
         command = ("RETURN_BIKE_RESET", (bid, return_loc_id, mobile))
+
+    def returnBike(self, bid, return_loc_id, mobile):
+        command = ("RETURN_BIKE_RESET", (bid, return_loc_id, mobile))
         self.clientSocket.send(bytes(str(command).encode('UTF-8')))
 
     def calDuration(self, bid):
