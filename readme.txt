@@ -40,6 +40,11 @@ From CUSTOMER's VIEW
 	10. If you press report it will look show same as 6.
 	11. If you press confirm it will go back to locations page -> 3.
 
+From MANAGER's VIEW
+1. Select a type of data from the drop down menu
+2. Click the 'Draw' button
+3. Enjoy the visualized data 
+
 
 
 
