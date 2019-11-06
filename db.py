@@ -64,6 +64,7 @@ class database(object):
             duration    DATETIME,
             start_location_id    INTEGER,
             return_location_id    INTEGER,
+            date	TEXT,
             PRIMARY KEY (id)
             FOREIGN KEY (bike_id) 
                 REFERENCES Bikes(id),
@@ -72,7 +73,7 @@ class database(object):
             FOREIGN KEY (start_location_id) 
                 REFERENCES Locations(id),
             FOREIGN KEY (return_location_id) 
-                REFERENCES Users(mobile)
+                REFERENCES Locations(id)
         );""")
         self.db.commit()
     # ===============================================================
@@ -166,15 +167,6 @@ class database(object):
         except sql.OperationalError as e:
             return e
 
-    # Deprecated
-    # def getBikesInLocation(self, _location_id):
-    # 	try:
-    # 		self.cursor.execute(""" SELECT id FROM Bikes
-    # 			WHERE location_id = {}""".format(_location_id))
-    # 		return self.cursor.fetchall()
-    # 	except sql.OperationalError as e:
-    # 		print("Location does not exist!")
-
     def getColumnsInDB(self, data):
         try:
             table, columns = data[0], data[1]
@@ -187,7 +179,7 @@ class database(object):
         self.cursor.execute((" SELECT * FROM Bikes WHERE location_id={} ".format(str(location_id))))
         return self.cursor.fetchall()
 
-    def payBill(self,mobile, bike_id, duration, bill, start_location_id, return_location_id):
+    def payBill(self,mobile, bike_id, duration, bill, start_location_id, return_location_id, date):
         # -------- get balance ---
         self.cursor.execute(("SELECT * FROM Users WHERE mobile = '{}'".format(mobile)))
         balance = self.cursor.fetchall()[0][2]
@@ -197,14 +189,14 @@ class database(object):
         self.db.commit()
         print("[Server] {} paid £ {}.".format(mobile, bill))
         # -------- logging --------
-        self.recordLog(mobile, bike_id, duration, bill, start_location_id, return_location_id)
+        self.recordLog(mobile, bike_id, duration, bill, start_location_id, return_location_id, date)
         print("[Server] {} 's trip has been logged.".format(mobile))
         return balance
 
-    def recordLog(self, mobile, bike_id, duration, bill, start_location_id, return_location_id):
+    def recordLog(self, mobile, bike_id, duration, bill, start_location_id, return_location_id, date):
         id = self.countLog()+1
-        self.cursor.execute("INSERT INTO Log(id, mobile, bike_id, cost, duration, start_location_id, return_location_id) VALUES(?,?,?,?,?,?,?)",
-                            (id, mobile, bike_id, bill, duration, start_location_id, return_location_id))
+        self.cursor.execute("INSERT INTO Log(id, mobile, bike_id, cost, duration, start_location_id, return_location_id, date) VALUES(?,?,?,?,?,?,?,?)",
+                            (id, mobile, bike_id, bill, duration, start_location_id, return_location_id, date))
         self.db.commit()
         
     def countLog(self):
@@ -212,12 +204,19 @@ class database(object):
         count = self.cursor.fetchall()
         return int(count[0][0])
     
-    def countLogperStation(self):
+    def countLogperStation(self,date):
+        today = date[0].replace('-','/',2)
         try:
-            self.cursor.execute("SELECT COUNT(*) FROM Log GROUP BY start_location_id ;")
+            self.cursor.execute("""SELECT COUNT(*) FROM (
+                                SELECT * FROM Log
+                                WHERE date ='{}' AND start_location_id = {}
+                                ) ;""".format(today,date[1]))
             count = self.cursor.fetchall()
-            #"detuple" the tuples in the list using list comprehension
-            return [i for t in count for i in t]
+            print(count)
+            if not count:
+                return 0
+            else:
+                return count[0][0]
         except sql.OperationalError as e:
             return e
     

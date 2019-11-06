@@ -174,26 +174,29 @@ class ClientInterface(ClientConnection):
         self.start_location_id = location_id
         # clientSocket.sendall(json.dumps('{"GET_COLUMNS_IN_TABLE", {"Bikes", "id, location_id"}}').encode('UTF-8'))
         # clear_window()
-        # create a canvas object and a vertical scrollbar for scrolling it
+        # create a canvas object with a veritical scroll bar attach to it
 
-        vscrollbar = Scrollbar(self.window, orient='vertical')
-        vscrollbar.pack(side='right', fill='y', expand='False')
+        scrollbar = Scrollbar(self.window, orient='vertical')
+        scrollbar.pack(side='right', fill='y', expand='False')
         canvas = Canvas(self.window, bd=0, highlightthickness=0,
-                        yscrollcommand=vscrollbar.set)
+                        yscrollcommand=scrollbar.set)
         canvas.pack(side="left", fill="both", expand="True")
-        vscrollbar.config(command=canvas.yview)
+        scrollbar.config(command=canvas.yview)
 
         # reset the view
         canvas.xview_moveto(0)
         canvas.yview_moveto(0)
 
-        # create a frame inside the canvas which will be scrolled with it
+        # create a frame inside the canvas
         interior = Frame(canvas)
         self.window.interior = interior
         interior_id = canvas.create_window(0, 0, window=interior, anchor='nw')
 
+
+
+        
         # track changes to the canvas and frame width and sync them,
-        # also updating the scrollbar
+        #update the scrollbar
         def configure_interior(event):
             # update the scrollbars to match the size of the inner frame
             size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
@@ -202,18 +205,17 @@ class ClientInterface(ClientConnection):
                 # update the canvas's width to fit the inner frame
                 canvas.config(width=interior.winfo_reqwidth())
 
-        interior.bind('<Configure>', configure_interior)
-
         def configure_canvas(event):
             if interior.winfo_reqwidth() != canvas.winfo_width():
                 # update the inner frame's width to fill the canvas
                 canvas.itemconfigure(interior_id, width=canvas.winfo_width())
-
+                
+                
         canvas.bind('<Configure>', configure_canvas)
-
+        interior.bind('<Configure>', configure_interior)
         self.draw_bikes_button_page(location_id)  # if it's an operator should draw operator_buttons
         self.show_back_button(self.locationsPage)
-
+                
     def timer(self, s_initial, time_label):
         s = int(strftime("%S"))
         if s < s_initial:
@@ -261,7 +263,7 @@ class ClientInterface(ClientConnection):
             if reported_status == 'True':
                 btn.config(state='disabled', bg='#EA5C5C')
             btn.pack(padx=10, pady=5, side="top")
-
+    #Deprecated
     def draw_operator_buttons(self, stationId):
         # ....... connect to db here
         bikelist = ["Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike", "Bike",
@@ -412,7 +414,7 @@ class ClientInterface(ClientConnection):
 
         confirm_btn = Button(popup, height=1, width=10, text="Confirm",
                              command=lambda b_id=self.bike_id, u_id=self.username, l_id=self.start_location_id,
-                             d=datetime.datetime.now().strftime("%m/%d/%Y-%H:%M:%S"):
+                             d=datetime.datetime.now().strftime("%Y/%m/%d-%H:%M:%S"):
                              self.open_reporter_sendError(popup, go_to, b_id, u_id, l_id, hint_reporter.get(), d))
         confirm_btn.pack()
         popup.mainloop()
@@ -460,10 +462,10 @@ class ClientInterface(ClientConnection):
         else:
             self.open_pay()
 
-    def open_pay(self, ):
+    def open_pay(self):
         self.clear_window()
         # (mobile,bike_id,duration,bill, start_location_id, return_location_id)
-        payment_state = self.payBill(self.username, self.bike_id, self.duration, self.payment, self.start_location_id, self.return_location_id)
+        payment_state = self.payBill(self.username, self.bike_id, self.duration, self.payment, self.start_location_id, self.return_location_id, datetime.datetime.now().strftime("%Y/%m/%d"))
         self.returnBike(self.bike_id, self.return_location_id)
         payment_state = round(float(payment_state), 2)
         if payment_state > 0:
@@ -485,94 +487,3 @@ class ClientInterface(ClientConnection):
         report_button.place(x=100, y=350, width=120, height=30)
         report_button.configure(font=self.my_font)
         
-    #
-    # def manager_page():
-    #
-    #     datatype = [
-    #             "Rental activities",
-    #             "Rents per station",
-    #             "Broken Bike per station"
-    #             ]
-    #
-    #
-    #     Chart_Type = [
-    #             "Bar Chart",
-    #             "Line Chart",
-    #             "Pie Chart"
-    #             ]
-    #
-    #     varx = tk.StringVar(window)
-    #     varx.set(datatype[0])
-    #
-    #     varchart = tk.StringVar(window)
-    #     varchart.set(Chart_Type[0])
-    #
-    #     xaxis = tk.OptionMenu(window,varx,*datatype)
-    #     x = tk.Label(text="Data")
-    #     x.grid(row=0,column=0,padx = 90)
-    #     xaxis.grid(row=1,column=0)
-    #
-    #     chartType = tk.OptionMenu(window,varchart,*Chart_Type)
-    #     chart = tk.Label(text="Chart Types")
-    #     chart.grid(row=0,column=2,padx = 90)
-    #     chartType.grid(row=1,column=2)
-    #
-    #     plot = tk.Button(window, height = 1, width = 5,text = "Draw",command=lambda: draw(varchart.get(),varx.get()))
-    #     plot.grid(row=2,column=1,pady = 40)
-    #
-    # def draw(chartType,datatype):
-    #
-    #     if chartType == "Line Chart" :
-    #         if datatype =="Rental activities":
-    #             LineChart(["St1","St2","St3"],[1,2,3])
-    #         elif datatype =="Rents per station":
-    #             LineChart(["St1","St2","St3"],[135,346,523])
-    #         elif datatype =="Weekly rental report":
-    #             LineChart(["St1","St2","St3"],[3,2,1])
-    #         else:
-    #             print("Some bullshit")
-    #
-    #     elif chartType == "Bar Chart":
-    #         if datatype =="Rental activities":
-    #             BarChart(["St1","St2","St3"],[1,2,3],False)
-    #         elif datatype =="Rents per station":
-    #             BarChart(["St1","St2","St3"],[135,346,523],False)
-    #         elif datatype =="Weekly rental report":
-    #             BarChart(["St1","St2","St3"],[3,2,1],True)
-    #
-    #     elif chartType  == "Pie Chart":
-    #         if datatype =="Rental activities":
-    #             PieChart(["St1","St2","St3"],[1,2,3])
-    #         elif datatype =="Rents per station":
-    #             PieChart(["St1","St2","St3"],[135,346,523])
-    #         elif datatype =="Weekly rental report":
-    #             PieChart(["St1","St2","St3"],[3,2,1])
-    #     else:
-    #         print("you picked the wrong chart fool!")
-    #
-    # def LineChart(datasetx,datasety):
-    #
-    #     fig = Figure(figsize=(5,5))
-    #     a = fig.add_subplot(111)
-    #     a.plot(datasetx,datasety)
-    #     canvas = FigureCanvasTkAgg(fig,master=window)
-    #     canvas.draw()
-    #     canvas.get_tk_widget().grid(row=3,columnspan=3)
-    #
-    # def BarChart(datasetx,datasety,stacked):
-    #
-    #     fig = Figure(figsize=(5,5))
-    #     a = fig.add_subplot(111)
-    #     a.bar(datasetx,datasety)
-    #     canvas = FigureCanvasTkAgg(fig,master=window)
-    #     canvas.draw()
-    #     canvas.get_tk_widget().grid(row=3,columnspan=3)
-    #
-    # def PieChart(datasetx,datasety):
-    #
-    #     fig = Figure(figsize=(5,5))
-    #     a = fig.add_subplot(111)
-    #     a.pie(datasety,labels=datasetx)
-    #     canvas = FigureCanvasTkAgg(fig,master=window)
-    #     canvas.draw()
-    #     canvas.get_tk_widget().grid(row=3,columnspan=3)

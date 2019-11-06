@@ -7,6 +7,7 @@ from tkinter.font import Font
 import socket
 from threading import Thread
 import ast
+import datetime
 
 #FIRST = True
 bike_window = None
@@ -36,43 +37,39 @@ def client_connect_server():
 def manager_page():
     
     datatype = [
-            "Rental activities",
+            "Rental activities in last 7 days",
             "Rents per station",
             "Broken Bike per station"
             ]
-      
-
-    Chart_Type = [
-            "Bar Chart",
-            "Pie Chart"
-            ]
-
+    
     varx = StringVar(window)
     varx.set(datatype[0])
-  
-    varchart = StringVar(window)
-    varchart.set(Chart_Type[0])
 
     xaxis = OptionMenu(window,varx,*datatype)
     x = Label(text="Data")
-    x.grid(row=0,column=0,padx = 90)
-    xaxis.grid(row=1,column=0)
+    x.grid(row=0,column=1,padx = 240)
+    xaxis.grid(row=1,column=1)
     
-    chartType = OptionMenu(window,varchart,*Chart_Type)
-    chart = Label(text="Chart Types")
-    chart.grid(row=0,column=2,padx = 90)
-    chartType.grid(row=1,column=2)
-    
-    plot = Button(window, height = 1, width = 5,text = "Draw",command=lambda: draw(varchart.get(),varx.get()))
+    plot = Button(window, height = 1, width = 5,text = "Draw",command=lambda: draw(varx.get()))
     plot.grid(row=2,column=1,pady = 40)
 
-def draw(chartType,datatype):
-    if chartType == "Bar Chart":
-        if datatype =="Rental activities":
-            
-            rentals_per_station = getLog()
-            print(rentals_per_station)
-            BarChart(locations_id_abb,rentals_per_station,False)
+def draw(datatype):
+        if datatype =="Rental activities in last 7 days":
+            i=0
+            xaxis = []
+            while i<7:
+                xaxis.append(datetime.date.today()-datetime.timedelta(days = i))
+                i+=1
+                print(xaxis)
+            rentals_per_station = []
+            for i in locations_id :
+                temp = []
+                for d in xaxis:
+                    temp.append(getLog(d,i))
+                    
+                rentals_per_station.append(temp)
+                    
+            LineChart(xaxis,rentals_per_station,locations_id_abb)
         elif datatype =="Rents per station":
             
             income_per_station = getIncome()
@@ -82,35 +79,20 @@ def draw(chartType,datatype):
             
             brokenBikes = getBrokenBike()
             
-            BarChart(locations_id_abb,brokenBikes,False)
-        
-    elif chartType  == "Pie Chart":
-        if datatype =="Rental activities":
-            
-            rentals_per_station = getLog()
-                
-            PieChart(locations_id_abb,rentals_per_station)
-        elif datatype =="Rents per station":
-            
-            income_per_station = getIncome()
-            
-            PieChart(locations_id_abb,income_per_station)
-        elif datatype =="Broken Bike per station":
-            
-            brokenBikes = getBrokenBike()
-            
             PieChart(locations_id_abb,brokenBikes)
-    else:
-        print("you picked the wrong chart fool!")
-
-def LineChart(datasetx,datasety):
+            
+def LineChart(datasetx,datasety,legend_name):
     
     fig = Figure(figsize=(5,5))
     a = fig.add_subplot(111)
-    a.plot(datasetx,datasety)
+    print(datasety)
+    for r in datasety:
+        a.plot(datasetx,r)
+    
+    a.legend([legend_name[0], legend_name[1], legend_name[2], legend_name[3]], loc='upper left')
     canvas = FigureCanvasTkAgg(fig,master=window)
     canvas.draw()
-    canvas.get_tk_widget().grid(row=3,columnspan=3)
+    canvas.get_tk_widget().grid(row=3,columnspan=5)
 
 def BarChart(datasetx,datasety,stacked):
     
@@ -136,8 +118,8 @@ def getLocations():
     locations = ast.literal_eval(locations)
     return locations
 
-def getLog():
-    command = ("GET_LOG_COUNT",)
+def getLog(today,id):
+    command = ("GET_LOG_COUNT",(str(today) , id))
     clientSocket.send(bytes(str(command).encode('UTF-8'))) 
     log_count = clientSocket.recv(BUFSIZE).decode('UTF-8')
     log_count = ast.literal_eval(log_count)
