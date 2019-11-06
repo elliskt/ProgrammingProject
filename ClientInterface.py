@@ -30,10 +30,17 @@ class ClientInterface(ClientConnection):
         self.title_font = ('Helvetica', 18)
         self.register_label = None
         self.sec_backup = None
+        self.window.wm_iconbitmap('./resources/bicycle-rider.png')
+        self.window.configure(bg = "white")
 
     def clear_window(self):
         for widget in self.window.winfo_children():
             widget.destroy()
+            
+    def color_widget_bg(self):
+        for widget in self.window.winfo_children():
+            if widget.winfo_class() == 'Label':
+                widget.configure(bg = "white")
 
     def reset_timer(self):
         self.hours = 0
@@ -103,7 +110,8 @@ class ClientInterface(ClientConnection):
              self.register_label = Label(text="The phone number is not valid! It should have 10 digits!")
              self.register_label.place(x=110, y=220)
              self.register_label.configure(fg="red")
-            
+             
+        self.color_widget_bg() # delete the gray bg of widgets
 
     def register_page(self):
         self.clear_window()
@@ -121,6 +129,7 @@ class ClientInterface(ClientConnection):
         mobile_box.place(x=150, y=280, width=200, height=25)
         mobile_box["justify"] = "center"
         mobile_box.focus()
+        mobile_box.configure(bg="#F8F8F8")             
         # ----- password textbox ----------
         password_label = Label(text="Enter your password:")
         password_label.place(x=150, y=320)
@@ -129,29 +138,52 @@ class ClientInterface(ClientConnection):
         password_box.place(x=150, y=350, width=200, height=25)
         password_box["justify"] = "center"
         password_box.focus()
-
+        password_box.configure(bg="#F8F8F8") 
+        # -------- register button ---------
         register_button = Button(text="Sign Up", command=lambda: self.register_page_connect(mobile_box.get(), password_box.get()))
         register_button.place(x=150, y=400, width=200, height=25)
         register_button.configure(font=3)
         register_button.configure(background="#66A1DC")
+                                  
+        self.color_widget_bg() # delete the gray bg of widgets
 
     def login_page_connect(self, un, pw):
-        login_state = self.clientLogin(un, pw)
-        if login_state[0] == "USER_NOT_EXIST":
-            register_label = Label(text="The user does not exist!")
-            register_label.place(x=150, y=220)
-            register_label.configure(fg="red")
-        elif login_state[0] == "USER_NOT_VERIFIED":
-            register_label = Label(text="The user and password don't match!")
-            register_label.place(x=150, y=220)
-            register_label.configure(fg="red")
-        elif login_state[0] == "USER_VERIFIED" and login_state[1] is None:
-            self.username = un
-            self.locationsPage()
-        elif login_state[0] == "USER_VERIFIED":
-            self.username = un
-            self.bike_id = int(login_state[1])
-            self.cal_to_timer(self.bike_id)
+      
+       
+        if len(un) != 0:
+            if len(pw) != 0:
+                login_state = self.clientLogin(un, pw)
+                if login_state[0] == "USER_NOT_EXIST":
+                    register_label = Label(text="The user does not exist!")
+                    register_label.place(x=150, y=220)
+                    register_label.configure(fg="red")
+                elif login_state[0] == "USER_NOT_VERIFIED":
+                    register_label = Label(text="The user and password don't match!")
+                    register_label.place(x=150, y=220)
+                    register_label.configure(fg="red")
+                elif login_state[0] == "USER_VERIFIED" and login_state[1] is None:
+                    self.username = un
+                    self.locationsPage()
+                elif login_state[0] == "USER_VERIFIED":
+                    self.username = un
+                    self.bike_id = int(login_state[1])
+                    self.cal_to_timer(self.bike_id)
+            else:
+                if self.register_label:
+                    self.register_label.destroy()
+              
+                self.register_label = Label(text="You need to introduce a password!")
+                self.register_label.place(x=160, y=220)
+                self.register_label.configure(fg="red")
+        else:
+            if self.register_label:
+                 self.register_label.destroy()
+              
+            self.register_label = Label(text="You need to introduce a mobile phone!")
+            self.register_label.place(x=140, y=220)
+            self.register_label.configure(fg="red")
+            
+        self.color_widget_bg() # delete the gray bg of widgets
 
     def cal_to_timer(self, bid):
         self.bike_id = bid
@@ -186,6 +218,7 @@ class ClientInterface(ClientConnection):
         mobile_box.place(x=150, y=280, width=200, height=25)
         mobile_box["justify"] = "center"
         mobile_box.focus()
+        mobile_box.configure(bg="#F8F8F8") 
         # ------ password textbox -----
         password_label = Label(text="Enter your password:")
         password_label.place(x=150, y=320)
@@ -194,6 +227,8 @@ class ClientInterface(ClientConnection):
         password_box.place(x=150, y=350, width=200, height=25)
         password_box["justify"] = "center"
         password_box.focus()
+        password_box.configure(bg="#F8F8F8") 
+        # -------- login button ---------
         login_button = Button(text="Log In", command=lambda: self.login_page_connect(mobile_box.get(), password_box.get()))
         login_button.place(x=150, y=400, width=200, height=25)
         login_button.configure(font=6)
@@ -204,6 +239,7 @@ class ClientInterface(ClientConnection):
         register_label.configure(font=("Calibri", 8))
         register_button = Button(text="Register", command=self.register_page)
         register_button.place(x=300, y=450, width=50, height=20)
+        self.color_widget_bg() # delete the gray bg of widgets
 
     def locationsPage(self):
         self.clear_window()
@@ -228,6 +264,7 @@ class ClientInterface(ClientConnection):
             button_tmp.place(x=x, y=start_y, width=width, height=height)
             button_tmp.configure(font=14)
             button_tmp.configure(background="#98FB98")
+        self.color_widget_bg() # delete the gray bg of widgets
 
     def bike_list_page(self, location_id):  # location indexed from 0..
         self.start_location_id = location_id
@@ -241,13 +278,14 @@ class ClientInterface(ClientConnection):
                         yscrollcommand=vscrollbar.set)
         canvas.pack(side="left", fill="both", expand="True")
         vscrollbar.config(command=canvas.yview)
-
+        canvas.configure(bg = "white")
         # reset the view
         canvas.xview_moveto(0)
         canvas.yview_moveto(0)
 
         # create a frame inside the canvas which will be scrolled with it
         interior = Frame(canvas)
+        interior.configure(bg = "white")
         self.window.interior = interior
         interior_id = canvas.create_window(0, 0, window=interior, anchor='nw')
 
@@ -315,6 +353,7 @@ class ClientInterface(ClientConnection):
         return_button.configure(background="#66A1DC")
 
         self.timer(int(strftime("%S")), time_label)
+        self.color_widget_bg() # delete the gray bg of widgets
 
     def draw_bikes_button_page(self, location_id):
         # This is the db code
@@ -359,6 +398,7 @@ class ClientInterface(ClientConnection):
     def openlink(self, bike_id):
         self.bike_id = bike_id
         popup = Toplevel(self.window)
+        popup.configure(bg='white') 
         w = 250  # width for the Tk root
         h = 100  # height for the Tk root
         ws = self.window.winfo_vrootwidth()  # width of root window
@@ -369,17 +409,20 @@ class ClientInterface(ClientConnection):
         popup.grab_set()
         l1 = Label(popup, text="Confirm Selection?")
         l1.pack(fill="y")
-        l2 = Label(popup, text='Bike-'+str(bike_id))
+        l1.configure(bg = "white")
+        l2 = Label(popup, text='Bike-' + str(bike_id))
         l2.pack(fill="y")
+        l2.configure(bg="white")
         go_to = "open_reporter"
         go_to2 = "timer_page"
 
         r = Button(popup, height=1, width=10, text="Report Bike", command=lambda p=popup: self.popup_release(popup, go_to))
         r.pack(side="left", padx=30)
-        #r.configure(background="#FFC300")
+        r.configure(background="#F8F8F8")
         n = Button(popup, height=1, width=10, text="Confirm", command=lambda bid=bike_id: self.confirmBike(popup, go_to2, bid))
         n.pack(side="right", padx=15)
-        #n.configure(background="#61ED6C")
+        n.configure(background="#F8F8F8")
+        
         popup.mainloop()
 
     def confirmBike(self, popup, go_to2, bike_id):
@@ -455,6 +498,7 @@ class ClientInterface(ClientConnection):
 
     def open_reporter(self):
         popup = Toplevel(self.window)
+        popup.configure(bg='white') 
         w = 300  # width for the Tk root
         h = 100  # height for the Tk root
         ws = self.window.winfo_vrootwidth()  # width of root window
@@ -474,11 +518,12 @@ class ClientInterface(ClientConnection):
         hint_reporter.set(selection_info)
         endlocation_menu = OptionMenu(popup, hint_reporter, *report_type)
         endlocation_menu.pack()
-        endlocation_menu.configure(font=self.my_font)
+        endlocation_menu.configure(font=self.my_font, bg = "#F8F8F8" )
         # ---------------------------
 
         message_label = Label(popup, text="Your report will be submitted to our system.")
         message_label.pack(fill="y")
+        message_label.configure(bg="white")
 
         confirm_btn = Button(popup, height=1, width=10, text="Confirm",
                              command=lambda b_id=self.bike_id, u_id=self.username, l_id=self.start_location_id,
@@ -506,7 +551,7 @@ class ClientInterface(ClientConnection):
         # setting payment to label, 0.2 pounds each second
         self.payment = round(sec*0.2 + minutes*60*0.2 + hours*3600*0.2, 2)
         pay_label = Label(text="Bill: £ {} ".format(self.payment))
-        pay_label.place(x=140, y=200, width=200, height=25)
+        pay_label.place(x=150, y=200, width=200, height=25)
         pay_label.configure(font=self.my_font)
         # dropdown for endloc
         hint = StringVar()
@@ -520,6 +565,8 @@ class ClientInterface(ClientConnection):
         pay_button.place(x=200, y=420, width=120, height=30)
         pay_button.configure(font=self.my_font)
         pay_button.configure(background="#66A1DC")
+        
+        self.color_widget_bg()
 
     def verify_location(self, h, m, s, sel, sel_info):
         self.duration = "{}:{}:{}".format(h, m, s)
@@ -532,6 +579,8 @@ class ClientInterface(ClientConnection):
         else:
             self.return_location_id = int(sel.split('-')[0])
             self.open_pay()
+        
+        self.color_widget_bg()
 
     def open_pay(self, ):
         self.clear_window()
@@ -540,9 +589,9 @@ class ClientInterface(ClientConnection):
         self.returnBike(self.bike_id, self.return_location_id, self.username, )
         payment_state = round(float(payment_state), 2)
         if payment_state > 0:
-            statment_label1 = Label(text="Payment Successfull.")
+            statment_label1 = Label(text="Payment Successfull.",  font=('Helvetica', 14))
         else:
-            statment_label1 = Label(text="Payment Successful. Please top-up.")
+            statment_label1 = Label(text="Payment Successful. Please top-up.",  font=('Helvetica', 14))
         self.reset_timer()
         statment_label1.place(x=150, y=150)
         statment_label1.configure(font=self.my_font)

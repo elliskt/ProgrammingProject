@@ -44,12 +44,17 @@ def manager_page():
     #The drop down menu
     xaxis = OptionMenu(window,varx,*datatype)
     x = Label(text="Data")
+    x.configure(bg = "white", font=('Helvetica',16))
     x.grid(row=0,column=1,padx = 260)
-    xaxis.grid(row=1,column=1)
+    xaxis.grid(row=4,column=1)
     
     #The draw button
-    plot = Button(window, height = 1, width = 5,text = "Draw",command=lambda: draw(varx.get()))
-    plot.grid(row=2,column=1,pady = 40)
+    plot = Button(window, height = 1, width = 5,text = "Draw", bg = "#66A1DC", font = ('Roboto',10), command=lambda: draw(varx.get()))
+    plot.grid(row=5,column=1,pady = 40)
+    
+        
+    label  = Label(text = "The graph will be displayed here ...", ) 
+    label.place(x = 200, y = 300) 
     
 #----This function is used to get data and call the appropriate chart fucntion
 def draw(datatype):
@@ -155,9 +160,14 @@ def getBrokenBike():
     log_count = ast.literal_eval(log_count)
     return log_count
 
-
+def color_widget_bg():
+    for widget in window.winfo_children():
+        if widget.winfo_class() == 'Label':
+            widget.configure(bg = "white")
+            
 def main_page():
     window.title("BikeSharing")
+    window.configure(bg = "white")
     w = 550 # width for the Tk root
     h = 530 # height for the Tk root
     
@@ -175,6 +185,7 @@ def main_page():
     global title_font
     title_font = ('Helvetica', 18)
     manager_page()
+    color_widget_bg()
     window.mainloop()
 
 
