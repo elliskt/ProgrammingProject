@@ -24,12 +24,6 @@ class bikeSharingServer(database):
     # -------------- authenticate user ----------------
     def authenticateUserCommand(self, data): # Command structure: ("mobile_number", "password")
         mobile, pswd = data[0], data[1]
-        # self.clientSocket.sendall(b'verify')
-        # self.client_login = self.clientSocket.recv(self.BUFSIZE)
-        # self.client_login = self.client_login.decode('utf-8')
-        # self.mobile, pswd = self.client_login.split(' ')
-        # print('[Server] Mobile number:', mobile)
-        # print('[Server] Password:', pswd)
         # ----- verify the username & password ---
         verificationStatus = self.verifyUser(mobile, pswd)
         print("verificationStatus", verificationStatus)
@@ -98,15 +92,15 @@ class bikeSharingServer(database):
     def fixBikeCommand(self, tupleRcvd):
         self.fixBike(tupleRcvd)
         self.receiveCommand()
-
+    # ------ rent bike -----
     def rentBikeCommand(self, tupleRcvd):
         self.rentBike(tupleRcvd)
         self.receiveCommand()
-
+    # ------ Update location -----
     def sendLocationCommand(self, tupleRcvd):
         self.sendLocation(tupleRcvd)
         self.receiveCommand()
-
+    # ------ Update location -----
     def returnBikeResetCommand(self, tupleRcvd):
         self.returnBikeReset(tupleRcvd)
         self.receiveCommand()
@@ -145,27 +139,27 @@ class bikeSharingServer(database):
         elif command == 'REGISTER':         # Command structure: ("mobile_number", "password")
             self.registerUserCommand(tupleRcvd[1])
         elif command == "GET_LOCATIONS":    # Command structure: ("Table_name", "column1, column2, column3, etc"))
-            self.getLocationsCommand(tupleRcvd[1])
+            self.getLocationsCommand(tupleRcvd[1])     # Command structure: ("today", "Id"))
         elif command == "GET_BIKES":
-            self.getBikesCommand(tupleRcvd[1])
+            self.getBikesCommand(tupleRcvd[1])     # Command structure: ("today", "Id"))
         elif command == "GET_BIKE_LOCATION":
-            self.getBikeLocationCommand(tupleRcvd[1])
+            self.getBikeLocationCommand(tupleRcvd[1])     # Command structure: ("today", "Id"))
         elif command == "PAY_BILL":
-            self.payBillCommand(tupleRcvd[1])
+            self.payBillCommand(tupleRcvd[1])     # Command structure: ("mobile","bike_id",etc....)) Everything in the Log table
         elif command == "SEND_REPORT":
-            self.sendReportCommand(tupleRcvd[1])
+            self.sendReportCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
         elif command == "GET_ALL_BIKES":
             self.getAllBikesCommand()
         elif command == "MOVE_BIKE":
-            self.moveBikeCommand(tupleRcvd[1])
+            self.moveBikeCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
         elif command == "FIX_BIKE":
-            self.fixBikeCommand(tupleRcvd[1])
+            self.fixBikeCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
         elif command == "RENT_BIKE":
-            self.rentBikeCommand(tupleRcvd[1])
+            self.rentBikeCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
         elif command =="SEND_LOCATION":
-            self.sendLocationCommand(tupleRcvd[1])
+            self.sendLocationCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
         elif command =="RETURN_BIKE_RESET":
-            self.returnBikeResetCommand(tupleRcvd[1])
+            self.returnBikeResetCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
         elif command == "GET_LOG_COUNT":
             self.getLogCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
         elif command == "GET_INCOME":
@@ -173,4 +167,4 @@ class bikeSharingServer(database):
         elif command == "GET_BROKEN_BIKE":
             self.getBrokenBikeCommand()
         elif command == "CAL_DURATION":
-            self.calDurationCommand(tupleRcvd[1])
+            self.calDurationCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))

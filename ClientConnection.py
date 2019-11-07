@@ -34,10 +34,6 @@ class ClientConnection(object):
         return login_state
 
     def registerClient(self, un, pw):
-        # the user may sent space will hence error here
-        # ============ GUI should not allow username or passwords to include spaces===========
-        # regis_package = '%s %s' % (un, pw)
-
         # ---------- register to db ---------
         self.clientSocket.send(bytes(('("REGISTER", ("{}", "{}"))').format(un, pw).encode('UTF-8')))
         regis_state = self.clientSocket.recv(BUFSIZE)
@@ -79,9 +75,6 @@ class ClientConnection(object):
         lng = current_loc.latlng[1]
         command = ("SEND_LOCATION", (bid, lat, lng))
         self.clientSocket.send(bytes(str(command).encode('UTF-8')))
-
-    def returnBike(self, bid, return_loc_id, mobile):
-        command = ("RETURN_BIKE_RESET", (bid, return_loc_id, mobile))
 
     def returnBike(self, bid, return_loc_id, mobile):
         command = ("RETURN_BIKE_RESET", (bid, return_loc_id, mobile))

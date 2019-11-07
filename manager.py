@@ -95,15 +95,17 @@ def draw(datatype):
             brokenBikes = getBrokenBike()
             #call the pie chart function   
             PieChart(locations_id_abb,brokenBikes)
-
+    #----Line Chart function----
 def LineChart(datasetx,datasety,legend_name):
     #define size of the chart
     fig = Figure(figsize=(7,5))
     #define the position 
     a = fig.add_subplot(111)
+    
     #dataset y contains a list of rental activities from each station
     #it will loop through dataset y and draw a line for each station
     #x axis is last 7 days
+    
     for r in datasety:
         a.plot(datasetx,r)
     #adding a legend
@@ -132,34 +134,29 @@ def PieChart(datasetx,datasety):
     canvas = FigureCanvasTkAgg(fig,master=window)
     canvas.draw()
     canvas.get_tk_widget().grid(row=3,columnspan=3)
-    
-def getLocations():
-    clientSocket.send(bytes(('("GET_LOCATIONS", ("Locations", "name"))').encode('UTF-8')))
-    locations = clientSocket.recv(BUFSIZE).decode('UTF-8')
-    locations = ast.literal_eval(locations)
-    return locations
 
+    #----Log retrive function----
 def getLog(today,id):
     command = ("GET_LOG_COUNT",(str(today) , id))
     clientSocket.send(bytes(str(command).encode('UTF-8'))) 
     log_count = clientSocket.recv(BUFSIZE).decode('UTF-8')
     log_count = ast.literal_eval(log_count)
     return log_count
-
+    #----Income retrive function----
 def getIncome():
     command = ("GET_INCOME",)
     clientSocket.send(bytes(str(command).encode('UTF-8'))) 
     log_count = clientSocket.recv(BUFSIZE).decode('UTF-8')
     log_count = ast.literal_eval(log_count)
     return log_count
-
+    #----Broken bikes retrive function----
 def getBrokenBike():
     command = ("GET_BROKEN_BIKE",)
     clientSocket.send(bytes(str(command).encode('UTF-8'))) 
     log_count = clientSocket.recv(BUFSIZE).decode('UTF-8')
     log_count = ast.literal_eval(log_count)
     return log_count
-
+    #To change color of label
 def color_widget_bg():
     for widget in window.winfo_children():
         if widget.winfo_class() == 'Label':

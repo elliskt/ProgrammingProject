@@ -7,77 +7,7 @@ class database(object):
         self.db = sql.connect('bikesharing.db')
         self.cursor = self.db.cursor()
         self.db.execute("PRAGMA foreign_keys = 1") #Enable foreign key in SQLite3
-
-        # Initializing DBs
-
-        #User Types: Client = 1, Manager = 2, Operator = 3
-        self.cursor.execute(""" CREATE TABLE IF NOT EXISTS Users(
-            mobile	TEXT PRIMARY KEY,
-            pswd	TEXT NOT NULL,
-            name	TEXT,
-            type	INTEGER NOT NULL);""")
-        self.db.commit()
-
-        # ----------- Create Bikes table --------------
-        self.cursor.execute(""" 
-        CREATE TABLE IF NOT EXISTS `Bikes`(
-        `id`	INTEGER,
-        `location_id`	INTEGER,
-        `in_use`	BOOLEAN,
-        `loc_latitude`	REAL,
-        `loc_longtitude`	REAL,
-        `time_from`	DATETIME,
-        `condition`	BOOLEAN,
-        PRIMARY KEY(`id`),
-        FOREIGN KEY(`location_id`) REFERENCES `Locations`(`id`)
-        );""")
-        self.db.commit()
-
-        # -------   Create bikes report -------------------------
-        self.cursor.execute(""" 
-        CREATE TABLE IF NOT EXISTS `Bikes_report`(
-        bike_id TEXT, 
-        user_id TEXT, 
-        location_id TEXT, 
-        error_type TEXT, 
-        date TEXT
-        );""")
-        self.db.commit()
-
-        # ----------- Create Locations(Bike stop location) table --------
-        self.cursor.execute("""
-        CREATE TABLE IF NOT EXISTS `Locations` (
-        `id`    INTEGER,
-        `name`    TEXT,
-        `loc_latitude`    REAL,
-        `loc_longtitude`    REAL,
-        PRIMARY KEY(`id`)
-        );""")
-        self.db.commit()
-
-        self.cursor.execute(""" CREATE TABLE IF NOT EXISTS Log(
-            id             INTEGER,
-            mobile        INTEGER,
-            bike_id        INTEGER,
-            cost        INTEGER,
-            condition    REAL,
-            duration    DATETIME,
-            start_location_id    INTEGER,
-            return_location_id    INTEGER,
-            date	TEXT,
-            PRIMARY KEY (id)
-            FOREIGN KEY (bike_id) 
-                REFERENCES Bikes(id),
-            FOREIGN KEY (mobile) 
-                REFERENCES Users(mobile)
-            FOREIGN KEY (start_location_id) 
-                REFERENCES Locations(id),
-            FOREIGN KEY (return_location_id) 
-                REFERENCES Locations(id)
-        );""")
-        self.db.commit()
-    # ===============================================================
-
+        
     # ----------------------- user -----------------------------------
     def addUser(self, _mobile, _pswd, _name, _type):
         try:
@@ -161,14 +91,6 @@ class database(object):
         for i in self.cursor.fetchall():
             print(i)
 
-    # Deprecated
-    def getDB(self, table):
-        try:
-            self.cursor.execute(""" SELECT * FROM {}""".format(table))
-            return self.cursor.fetchall() #returns a list of DB records
-        except sql.OperationalError as e:
-            return e
-
     def getColumnsInDB(self, data):
         try:
             table, columns = data[0], data[1]
@@ -203,7 +125,7 @@ class database(object):
         self.recordLog(mobile, bike_id, duration, bill, start_location_id, return_location_id, date)
         print("[Server] {} 's trip has been logged.".format(mobile))
         return balance
-
+    # ----- Insert log info -----
     def recordLog(self, mobile, bike_id, duration, bill, start_location_id, return_location_id, date):
         id = self.countLog()+1
         self.cursor.execute("INSERT INTO Log(id, mobile, bike_id, cost, duration, start_location_id, return_location_id, date) VALUES(?,?,?,?,?,?,?,?)",
@@ -248,9 +170,6 @@ class database(object):
             return [i for t in badBikes for i in t]
         except sql.OperationalError as e:
             return e
-
-    # def recordLog(self,  id, mobile, bike_id, duration, bill, start_location_id, return_location_id):
-
 
     def writeReport(self, data):
         # (bike_id, user_id, location_id, error_type, date)
