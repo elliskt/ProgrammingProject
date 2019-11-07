@@ -12,7 +12,7 @@ class database(object):
     def addUser(self, _mobile, _pswd, _name, _type):
         try:
             self.cursor.execute(""" INSERT INTO Users(mobile, pswd, balance, using_bikeid)
-                VALUES(?, ?, ?, NULL)""",format(_mobile, str(_pswd),10))
+                VALUES(?, ?, ?, NULL)""",(_mobile, str(_pswd),10))
             self.db.commit()
         except sql.IntegrityError as e:
             if e.args[0] == 'UNIQUE constraint failed: Users.mobile':
