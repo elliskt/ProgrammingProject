@@ -51,6 +51,13 @@ class ClientConnection(object):
         bikes = self.clientSocket.recv(BUFSIZE).decode('UTF-8')
         bikes = ast.literal_eval(bikes)
         return bikes
+    
+    def getBikeLocation(self, bid):
+        command = ("GET_BIKE_LOCATION", bid)
+        self.clientSocket.send(bytes(str(command).encode('UTF-8')))
+        bikes = self.clientSocket.recv(BUFSIZE).decode('UTF-8')
+        bikes = ast.literal_eval(bikes)
+        return bikes
 
     def payBill(self, mobile, bike_id, duration, bill, start_location_id, return_location_id, date):
         command = ("PAY_BILL", (mobile,bike_id,duration,bill, start_location_id, return_location_id, date))

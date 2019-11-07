@@ -83,6 +83,11 @@ class bikeSharingServer(database):
         records = self.getAllBikes()
         self.clientSocket.sendall(bytes(str(records).encode('utf-8')))
         self.receiveCommand()
+        
+    def getBikeLocationCommand(self,tupleRcvd):
+        records = self.getBikeLocation(tupleRcvd)
+        self.clientSocket.sendall(bytes(str(records).encode('utf-8')))
+        self.receiveCommand()
 
     # ----- move bike ----
     def moveBikeCommand(self, tupleRcvd):
@@ -143,6 +148,8 @@ class bikeSharingServer(database):
             self.getLocationsCommand(tupleRcvd[1])
         elif command == "GET_BIKES":
             self.getBikesCommand(tupleRcvd[1])
+        elif command == "GET_BIKE_LOCATION":
+            self.getBikeLocationCommand(tupleRcvd[1])
         elif command == "PAY_BILL":
             self.payBillCommand(tupleRcvd[1])
         elif command == "SEND_REPORT":

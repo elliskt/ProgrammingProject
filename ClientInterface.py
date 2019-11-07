@@ -186,6 +186,7 @@ class ClientInterface(ClientConnection):
         self.color_widget_bg() # delete the gray bg of widgets
 
     def cal_to_timer(self, bid):
+        self.start_location_id = self.getBikeLocation(bid)
         self.bike_id = bid
         self.first_timer = True
         previous_time = self.calDuration(bid)

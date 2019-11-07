@@ -95,8 +95,8 @@ class database(object):
         self.cursor.execute("""SELECT COUNT(1) FROM Users WHERE mobile = ? AND pswd = ?""", (mobile, pswd))
         count = self.cursor.fetchall()[0][0]
         self.cursor.execute("""SELECT * FROM Users WHERE mobile = ? AND pswd = ?""", (mobile, pswd))
-        bike_id = self.cursor.fetchall()[0][3]
         if count == 1:
+            bike_id = self.cursor.fetchall()[0][3]
             return "USER_VERIFIED", bike_id
         else:
             self.cursor.execute("""SELECT COUNT(1) FROM Users WHERE mobile = ?""", (mobile,))
@@ -178,8 +178,17 @@ class database(object):
             return e
 
     def getBikesInLocation(self, location_id):
-        self.cursor.execute((" SELECT * FROM Bikes WHERE location_id={} ".format(str(location_id))))
+        self.cursor.execute((" SELECT * FROM Bikes WHERE location_id={} AND in_use = 'False' ".format(str(location_id))))
         return self.cursor.fetchall()
+    
+    def getBikeLocation(self, bid):
+        try:
+            self.cursor.execute((" SELECT location_id FROM Bikes WHERE id={} ".format(str(bid))))
+            loc = self.cursor.fetchall()
+            return loc[0][0]
+        except sql.OperationalError as e:
+            return e
+
 
     def payBill(self, mobile, bike_id, duration, bill, start_location_id, return_location_id, date):
         # -------- get balance ---
@@ -270,8 +279,6 @@ class database(object):
             "UPDATE Bikes SET in_use='True' WHERE id={}".format(str(data[0])))
         self.cursor.execute(
             "UPDATE Bikes SET time_from='{}' WHERE id={}".format(str(data[1]), str(data[0])))
-        self.cursor.execute(
-            "UPDATE Bikes SET location_id=NULL WHERE id={}".format(str(data[0])))
         self.cursor.execute(
             "UPDATE Users SET using_bikeid={} WHERE mobile='{}'".format(data[0], str(data[2])))
         self.db.commit()
