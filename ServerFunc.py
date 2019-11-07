@@ -60,6 +60,7 @@ class bikeSharingServer(database):
     # ------------ pay bill and record -----------------
     def payBillCommand(self, tupleRcvd):
         # (mobile, bike_id, duration, bill, start_location_id, return_location_id)
+        print(tupleRcvd)
         pay_state = self.payBill(tupleRcvd[0], tupleRcvd[1], tupleRcvd[2], tupleRcvd[3], tupleRcvd[4], tupleRcvd[5], tupleRcvd[6])
         self.clientSocket.sendall(bytes(str(pay_state).encode('utf-8')))
         self.receiveCommand()

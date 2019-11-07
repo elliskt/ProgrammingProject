@@ -19,7 +19,7 @@ ddlist = []
 fixbuttonlist = []
 confirmbuttonlist = []
 
-
+# ------------- set a timer that is updated in every 10s
 def timer_update(lb):
     global TIMER
     while True:
@@ -30,15 +30,18 @@ def timer_update(lb):
             updateButton(bike_window)
         time.sleep(1)
 
+# ------------ color code to rgb function ----------
 def _from_rgb(rgb):
     """translates an rgb tuple of int to a tkinter friendly color code"""
     return "#%02x%02x%02x" % rgb
 
+# ------------- the changed data will show in red color for a sec --------
 def changed_color(label, str_1):
     for i in range(255,0,-1):
         label.config(text=str_1, fg=_from_rgb((i, 0, i//2)))
         time.sleep(0.01)
 
+# --------------- connect the page to server  ----------
 def client_connect_server():
     # ------ client connect --------
     print('Client is connecting to the server......')
@@ -50,6 +53,7 @@ def client_connect_server():
         print("Server error, please try again")
         exit(1)
 
+# ------------ send the get bike command to server -----
 def getBikes():
     command = ("GET_ALL_BIKES",)
     clientSocket.send(bytes(str(command).encode('UTF-8')))
@@ -57,14 +61,17 @@ def getBikes():
     bikes = ast.literal_eval(bikes)
     return bikes
 
+# ------------ send the move bike command to server -----
 def moveBike(bike_id, location_id, num):
     command = ("MOVE_BIKE",(bike_id, location_id))
     clientSocket.send(bytes(str(command).encode('UTF-8')))
 
+# ------------ send the fix bike command to server -----
 def fixBike(bike_id):
     command = ("FIX_BIKE", (bike_id,))
     clientSocket.send(bytes(str(command).encode('UTF-8')))
 
+# ------------ update button that can update the table -----
 def updateButton(window):
     global TIMER
     global FIRST
@@ -121,7 +128,7 @@ def updateButton(window):
     FIRST = False
     TIMER = 10
 
-
+# ----------- init the table format -----------------
 def show_status_page():
     global bike_window
     bike_window = tk.Tk()

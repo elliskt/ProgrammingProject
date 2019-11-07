@@ -89,6 +89,7 @@ class ClientInterface(ClientConnection):
             return True
     #Validation of the register page
     def register_page_connect(self, un, pw):
+        self.username = un
         if self.valid_number(un) == True:
             #check if user exists
             if self.valid_password(pw):
@@ -564,7 +565,7 @@ class ClientInterface(ClientConnection):
         #----Balance label----
         statment_label1.place(x=150, y=150)
         statment_label1.configure(font=self.my_font)
-        statment_label2 = Label(text="Balance: " + str(payment_state))
+        statment_label2 = Label(text="Balance: £ " + str(payment_state))
         statment_label2.place(x=180, y=180)
         statment_label2.configure(font=self.my_font)
         # ----- complete trip button ----

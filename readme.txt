@@ -2,8 +2,11 @@
 HOW TO RUN THE APP?
 
 0. Install geocoder in Anaconda environment (pip install geocoder)
+    - pip install geocoder
+    - pip install numpy
+    - pip install matplotlib
 1. Launch Spyder
-2. Open Server.py file and Run it
+2. Open Server.py file and keeping it running!! (VERY IMPORTANT TO KEEP THE SERVER RUNNING)
 
 From CUSTOMER's VIEW
 	3. Open Client.py 
@@ -11,14 +14,10 @@ From CUSTOMER's VIEW
 	5. Run Client.py in the new console
 
 From OPERATOR's VIEW
-	6. Open BikesStatus.py 
-	4. Open another console from Consoles tab
-	5. Run BikesStatus.py in the new console
+	6. Open BikesStatus.py
 
 From MANAGER's VIEW
-	7. Open manager.py 
-	8. Open another console from Consoles tab
-	9. Run manager.py in the new console
+	7. Open manager.py
 
 
 ############################ FUNCTIONAL PART ##############################
@@ -39,6 +38,15 @@ From CUSTOMER's VIEW
    or complete trip
 	10. If you press report it will look show same as 6.
 	11. If you press confirm it will go back to locations page -> 3.
+
+FROM OPERATOR's VIEW
+1. Update the table then data will show in table
+2. Fixed the specify reported bike.
+3. Move the bike to the chosen location.
+4. If something changes from the dabase, the changes data will show in red for a sec in table.
+5. You can see the longitude and latitute from the using bike.
+6. You can see the rental start time from the using bike.
+6. You can see the the specify bike is using or not.
 
 From MANAGER's VIEW
 1. Select a type of data from the drop down menu
