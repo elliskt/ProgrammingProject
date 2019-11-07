@@ -40,8 +40,6 @@ class bikeSharingServer(database):
     # -------------- register user -------------------------------------------------------
     def registerUserCommand(self, data): # Command structure: ("mobile_number", "password")
         mobile, pswd = data[0], data[1]
-        # print('[Server] Username: ', mobile)
-        # print('[Server] Password: ', pswd)
         reg_status = self.addUser(str(mobile), pswd, "Mohammad Alharbi", 1)
         self.clientSocket.sendall(bytes(reg_status.encode('utf-8')))        # result of register attempt
         # ------ go back to receiveCommand
@@ -104,22 +102,22 @@ class bikeSharingServer(database):
     def returnBikeResetCommand(self, tupleRcvd):
         self.returnBikeReset(tupleRcvd)
         self.receiveCommand()
-        
+    # ------ Get total income -----
     def getIncomeCommand(self):
         income = self.getIncomeperStation()
         self.clientSocket.sendall(bytes(str(income).encode('utf-8')))
         self.receiveCommand()
-        
+    # ------ Get all broken bikes -----
     def getBrokenBikeCommand(self):
         badBikes = self.getBrokenbikesperStation()
         self.clientSocket.sendall(bytes(str(badBikes).encode('utf-8')))
         self.receiveCommand()
-
+    # ------ calculate duration -----
     def calDurationCommand(self, tupleRcvd):
         time = self.calDuration(tupleRcvd)
         self.clientSocket.sendall(bytes(str(time).encode('utf-8')))
         self.receiveCommand()
-    
+    # ------ count log per station -----
     def getLogCommand(self, tupleRcvd):
         counts = self.countLogperStation(tupleRcvd)
         self.clientSocket.sendall(bytes(str(counts).encode('utf-8')))
@@ -138,33 +136,33 @@ class bikeSharingServer(database):
             self.authenticateUserCommand(tupleRcvd[1])
         elif command == 'REGISTER':         # Command structure: ("mobile_number", "password")
             self.registerUserCommand(tupleRcvd[1])
-        elif command == "GET_LOCATIONS":    # Command structure: ("Table_name", "column1, column2, column3, etc"))
-            self.getLocationsCommand(tupleRcvd[1])     # Command structure: ("today", "Id"))
-        elif command == "GET_BIKES":
-            self.getBikesCommand(tupleRcvd[1])     # Command structure: ("today", "Id"))
-        elif command == "GET_BIKE_LOCATION":
-            self.getBikeLocationCommand(tupleRcvd[1])     # Command structure: ("today", "Id"))
-        elif command == "PAY_BILL":
-            self.payBillCommand(tupleRcvd[1])     # Command structure: ("mobile","bike_id",etc....)) Everything in the Log table
-        elif command == "SEND_REPORT":
-            self.sendReportCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
+        elif command == "GET_LOCATIONS":    # Command structure: ("Location", "name"))
+            self.getLocationsCommand(tupleRcvd[1])
+        elif command == "GET_BIKES":     # Command structure: ( "Location_id")
+            self.getBikesCommand(tupleRcvd[1])
+        elif command == "GET_BIKE_LOCATION":     # Command structure: ("bike_id")
+            self.getBikeLocationCommand(tupleRcvd[1])
+        elif command == "PAY_BILL":     # Command structure: ("mobile","bike_id",etc....) Everything in the Log table
+            self.payBillCommand(tupleRcvd[1])
+        elif command == "SEND_REPORT":    # Command structure: ("bike_id", "user_id", "location_id", "error_type", "date")
+            self.sendReportCommand(tupleRcvd[1])
         elif command == "GET_ALL_BIKES":
             self.getAllBikesCommand()
-        elif command == "MOVE_BIKE":
-            self.moveBikeCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
-        elif command == "FIX_BIKE":
-            self.fixBikeCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
-        elif command == "RENT_BIKE":
-            self.rentBikeCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
-        elif command =="SEND_LOCATION":
-            self.sendLocationCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
-        elif command =="RETURN_BIKE_RESET":
-            self.returnBikeResetCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
-        elif command == "GET_LOG_COUNT":
-            self.getLogCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
+        elif command == "MOVE_BIKE":    # Command structure: ("Bike_id", "Location_id")
+            self.moveBikeCommand(tupleRcvd[1])
+        elif command == "FIX_BIKE":    # Command structure: ("Bike_id")
+            self.fixBikeCommand(tupleRcvd[1])
+        elif command == "RENT_BIKE":    # Command structure: ("bike", "date", "mobile")
+            self.rentBikeCommand(tupleRcvd[1])
+        elif command =="SEND_LOCATION":    # Command structure: ("bike_id", "latitude", "langitute")
+            self.sendLocationCommand(tupleRcvd[1])
+        elif command =="RETURN_BIKE_RESET":    # Command structure: ("bike_id", "return_location_id", "mobile")
+            self.returnBikeResetCommand(tupleRcvd[1])
+        elif command == "GET_LOG_COUNT":    # Command structure: ("today", "Id")
+            self.getLogCommand(tupleRcvd[1])
         elif command == "GET_INCOME":
             self.getIncomeCommand()
         elif command == "GET_BROKEN_BIKE":
             self.getBrokenBikeCommand()
-        elif command == "CAL_DURATION":
-            self.calDurationCommand(tupleRcvd[1])    # Command structure: ("today", "Id"))
+        elif command == "CAL_DURATION":    # Command structure: ( "Bike_Id")
+            self.calDurationCommand(tupleRcvd[1])

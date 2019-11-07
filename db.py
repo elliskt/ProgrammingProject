@@ -20,7 +20,7 @@ class database(object):
             else:
                 print("ERROR: ", e.args[0])
         return "USER_REGISTERD" # Operation successful
-
+    #-----verify user-----
     def verifyUser(self, mobile, pswd):  # return
         self.cursor.execute("""SELECT COUNT(1) FROM Users WHERE mobile = ? AND pswd = ?""", (mobile, pswd))
         count = self.cursor.fetchall()[0][0]
@@ -41,7 +41,7 @@ class database(object):
         self.db.commit()
     # =================================================================================
 
-    # --------------------- bikes -----------------------------------------------------
+    # ------add bike to db------
     def addBike(self, _id, _location_id):
         try:
             self.cursor.execute(""" INSERT INTO Bikes(id, location_id, condition)
@@ -54,18 +54,20 @@ class database(object):
                 print("ERROR: Bike ID exists")
             else:
                 print("ERROR: ", e.args[0])
-
-    def deleteBike(self, _id):
-        self.cursor.execute("DELETE FROM Bikes WHERE id={};".format(_id))
-        self.db.commit()
-
+    #--------Change condition of the bike--------
     def changeBikeCondition(self, _id, _condition):
-        self.cursor.execute("UPDATE Bikes SET condition=? WHERE id=?;", (_condition, _id))
-        self.db.commit()
-
+        try:
+            self.cursor.execute("UPDATE Bikes SET condition=? WHERE id=?;", (_condition, _id))
+            self.db.commit()
+        except sql.IntegrityError as e:
+            return e
+    #--------Change location of the bike--------
     def changeBikeLocation (self, _id, _location_id):
-        self.cursor.execute("UPDATE Bikes SET location_id=? WHERE id=?;", (_location_id, _id))
-        self.db.commit()
+        try:
+            self.cursor.execute("UPDATE Bikes SET location_id=? WHERE id=?;", (_location_id, _id))
+            self.db.commit()
+        except sql.IntegrityError as e:
+            return e
     # ========================================================================
 
     # --------------------------- Locations -----------------------------------
@@ -78,11 +80,6 @@ class database(object):
             if e.args[0] == "UNIQUE constraint failed: Locations.id":
                 print("ERROR: Location ID exists")
 
-    def deleteLocation(self, _id):
-        self.cursor.execute("DELETE FROM Locations WHERE id=?;", (_id))
-        self.db.commit()
-
-
     #==================== LOG ====================
     #================== GENERAL ==================
     def printDB(self, table):
@@ -90,7 +87,7 @@ class database(object):
         self.cursor.execute(""" SELECT * FROM {}""".format(table))
         for i in self.cursor.fetchall():
             print(i)
-
+    #----get name,id from table---
     def getColumnsInDB(self, data):
         try:
             table, columns = data[0], data[1]
@@ -98,11 +95,11 @@ class database(object):
             return self.cursor.fetchall()
         except sql.OperationalError as e:
             return e
-
+    #----get bike in specific location---
     def getBikesInLocation(self, location_id):
         self.cursor.execute((" SELECT * FROM Bikes WHERE location_id={} AND in_use = 'False' ".format(str(location_id))))
         return self.cursor.fetchall()
-    
+    #----get bike's location-----
     def getBikeLocation(self, bid):
         try:
             self.cursor.execute((" SELECT location_id FROM Bikes WHERE id={} ".format(str(bid))))
@@ -111,7 +108,7 @@ class database(object):
         except sql.OperationalError as e:
             return e
 
-
+    #-------------------------------------paybill function-----------------------------------------
     def payBill(self, mobile, bike_id, duration, bill, start_location_id, return_location_id, date):
         # -------- get balance ---
         self.cursor.execute(("SELECT * FROM Users WHERE mobile = '{}'".format(mobile)))
@@ -131,12 +128,12 @@ class database(object):
         self.cursor.execute("INSERT INTO Log(id, mobile, bike_id, cost, duration, start_location_id, return_location_id, date) VALUES(?,?,?,?,?,?,?,?)",
                             (id, mobile, bike_id, bill, duration, start_location_id, return_location_id, date))
         self.db.commit()
-        
+    #return total number of log records
     def countLog(self):
         self.cursor.execute("SELECT COUNT(*) FROM Log")
         count = self.cursor.fetchall()
         return int(count[0][0])
-    
+    #get the total number of rentals in specific station at specific date
     def countLogperStation(self,date):
         today = date[0].replace('-','/',2)
         try:
@@ -146,13 +143,15 @@ class database(object):
                                 ) ;""".format(today,date[1]))
             count = self.cursor.fetchall()
             print(count)
+            #if count returns nothing then make it 0
             if not count:
                 return 0
             else:
                 return count[0][0]
         except sql.OperationalError as e:
             return e
-    
+        
+    #----get rents per station---
     def getIncomeperStation(self):
         try:
             self.cursor.execute("SELECT SUM(cost) FROM Log GROUP BY start_location_id;")
@@ -161,7 +160,7 @@ class database(object):
             return [i for t in Income for i in t]
         except sql.OperationalError as e:
             return e
-        
+    #----get broken bikes per station---
     def getBrokenbikesperStation(self):
         try:
             self.cursor.execute("SELECT COUNT(*) FROM Bikes WHERE reported = 'True' GROUP BY location_id;")
@@ -170,7 +169,7 @@ class database(object):
             return [i for t in badBikes for i in t]
         except sql.OperationalError as e:
             return e
-
+    #----Insert report record---
     def writeReport(self, data):
         # (bike_id, user_id, location_id, error_type, date)
         self.cursor.execute("INSERT INTO Bikes_report(bike_id, user_id, location_id, error_type, date) VALUES(?,?,?,?,?)",
@@ -179,20 +178,20 @@ class database(object):
         self.db.commit()
         print("[Server] {} reported the Bike-{}.".format(data[1], data[0]))
         print("[Server] Bike-{} reported status ---> True.".format(data[0]))
-
+    #---get all bikes---
     def getAllBikes(self):
         self.cursor.execute("SELECT * FROM Bikes")
         return self.cursor.fetchall()
-
+    #---move bike to other locations---
     def moveBike(self, data):
         self.cursor.execute("UPDATE Bikes SET location_id={} WHERE id={}".format(str(data[1].split('-')[0]), str(data[0])))
         self.db.commit()
-
+    #---fix abroken bike ---
     def fixBike(self, data):
         self.cursor.execute(
             "UPDATE Bikes SET reported='{}' WHERE id={}".format('False', str(data[0])))
         self.db.commit()
-
+    #--- rent bike ---
     def rentBike(self, data):
         self.cursor.execute(
             "UPDATE Bikes SET in_use='True' WHERE id={}".format(str(data[0])))
@@ -201,14 +200,14 @@ class database(object):
         self.cursor.execute(
             "UPDATE Users SET using_bikeid={} WHERE mobile='{}'".format(data[0], str(data[2])))
         self.db.commit()
-
+    #--- update latitude and longitute  ---
     def sendLocation(self,data):
         self.cursor.execute(
             "UPDATE Bikes SET loc_latitude={} WHERE id={}".format(str(data[1]), str(data[0])))
         self.cursor.execute(
             "UPDATE Bikes SET loc_longtitude={} WHERE id={}".format(str(data[2]), str(data[0])))
         self.db.commit()
-
+    #----  return the bike ------
     def returnBikeReset(self, data):
         print("[Server] Bike-{} has been returned.".format(data[0]))
         self.cursor.execute(
@@ -224,7 +223,7 @@ class database(object):
         self.cursor.execute(
             "UPDATE Users SET using_bikeid=NULL WHERE mobile='{}'".format(str(data[2])))
         self.db.commit()
-
+    #---get interrupted duration ---
     def calDuration(self, data):
         self.cursor.execute("SELECT time_from FROM Bikes WHERE id={}".format(data[0]))
         time = self.cursor.fetchall()[0][0]
